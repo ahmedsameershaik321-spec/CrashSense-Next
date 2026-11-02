@@ -1,0 +1,110 @@
+name: crashsense
+
+x-backend-environment: &backend-environment
+  APP_NAME: CrashSense API
+  APP_VERSION: 0.1.0
+  ENVIRONMENT: production
+  DEBUG: "false"
+  API_V1_PREFIX: /api/v1
+  VIDEO_STORAGE_DIR: /app/storage/videos
+  DATABASE_HOST: db
+  DATABASE_PORT: 5432
+  DATABASE_NAME: ${POSTGRES_DB:-crashsense}
+  DATABASE_USER: ${POSTGRES_USER:-crashsense_app}
+  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+  CORS_ALLOWED_ORIGINS: '["${FRONTEND_PUBLIC_ORIGIN:-http://localhost:3000}"]'
+  INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
+  INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
+  INITIAL_ADMIN_FIRST_NAME: ${INITIAL_ADMIN_FIRST_NAME:-System}
+  INITIAL_ADMIN_LAST_NAME: ${INITIAL_ADMIN_LAST_NAME:-Administrator}
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-crashsense}
+      POSTGRES_USER: ${POSTGRES_USER:-crashsense_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment: *backend-environment
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      <<: *backend-environment
+      DETECTION_DEVICE: ${DETECTION_DEVICE:-auto}
+      DETECTION_MODEL_WEIGHTS: ${DETECTION_MODEL_WEIGHTS:-yolov8n.pt}
+      MAX_VIDEO_UPLOAD_SIZE_MB: ${MAX_VIDEO_UPLOAD_SIZE_MB:-100}
+    volumes:
+      - video_storage:/app/storage/videos
+      - model_cache:/home/crashsense/.config/Ultralytics
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        CRASHSENSE_BACKEND_ORIGIN: http://backend:8000
+        NEXT_PUBLIC_API_BASE_URL: /backend-api/api/v1
+        NEXT_PUBLIC_MAX_VIDEO_UPLOAD_SIZE_MB: ${NEXT_PUBLIC_MAX_VIDEO_UPLOAD_SIZE_MB:-100}
+    environment:
+      NODE_ENV: production
+      CRASHSENSE_BACKEND_ORIGIN: http://backend:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  video_storage:
+  model_cache:

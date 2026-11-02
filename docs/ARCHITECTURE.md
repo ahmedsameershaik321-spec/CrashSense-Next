@@ -98,7 +98,7 @@ Severity estimates are advisory and must not be treated as confirmed medical ass
 ### Emergency Response
 - Incident creation
 - Hospital identification
-- Emergency notification
+- Audit-only alert recording; external notification delivery is disabled
 - Response status tracking
 - Notification history
 
@@ -184,6 +184,26 @@ FastAPI Backend
 - Centralized error handling.
 - Maintainable code.
 
+## 8.1 Account Management and Deployment
+
+- Initial administrator creation is an explicit, one-time bootstrap operation;
+  public registration always creates a pending inactive user.
+- Only active administrators may approve pending users, assign operational
+  roles, or suspend/reactivate approved accounts. The last active
+  administrator is protected from deactivation and demotion.
+- PostgreSQL stores account records and analysis jobs. Uploaded videos and
+  model cache require persistent storage volumes.
+- Alembic migrations run before the API is started in the provided Compose
+  deployment. Production debug mode is disabled by default.
+- The default frontend integration uses a same-origin Next.js proxy. Direct
+  browser-to-API deployments must configure explicit
+  `CORS_ALLOWED_ORIGINS`; wildcard origins are rejected.
+- Map tiles and nearby resource lookups use OpenStreetMap public services.
+  Camera coordinates sent to the resource API are approximate scene-location
+  proxies, not verified incident coordinates.
+- Alert audit records are constrained to `not_sent`. No external emergency
+  notification provider is wired into the application.
+
 ## 9. Development Strategy
 
 Development proceeds incrementally.
@@ -207,4 +227,3 @@ No feature is considered complete merely because its interface has been generate
 - Emergency notifications must not be sent to real emergency services during development without explicit authorization.
 - Camera access must be authorized.
 - The system must support manual incident review.
-

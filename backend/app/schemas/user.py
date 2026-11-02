@@ -22,3 +22,11 @@ class UserResponse(BaseModel):
 
 class UserApprovalRequest(BaseModel):
     role: Literal["monitoring_operator", "administrator"]
+
+
+class UserRoleUpdateRequest(BaseModel):
+    role: Literal["monitoring_operator", "administrator"]
+
+
+class UserStatusUpdateRequest(BaseModel):
+    is_active: bool

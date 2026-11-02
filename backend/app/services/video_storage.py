@@ -167,6 +167,25 @@ def _validate_storage_key(storage_key: str) -> None:
         raise VideoStorageError("Invalid storage key.")
 
 
+def get_stored_video_path(storage_key: str) -> Path:
+    """Resolve a generated storage key to a file inside private storage."""
+    _validate_storage_key(storage_key)
+
+    storage_dir = get_video_storage_path()
+
+    try:
+        destination = (storage_dir / storage_key).resolve(strict=True)
+    except FileNotFoundError:
+        raise
+    except (OSError, RuntimeError) as exc:
+        raise VideoStorageError("Invalid storage destination.") from exc
+
+    if destination.parent != storage_dir or not destination.is_file():
+        raise VideoStorageError("Invalid storage destination.")
+
+    return destination
+
+
 def _validate_quarantine_key(quarantine_key: str) -> None:
     """Validate a generated quarantine key."""
     if not re.fullmatch(

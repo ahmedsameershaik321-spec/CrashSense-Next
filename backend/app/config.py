@@ -1,5 +1,7 @@
 from functools import lru_cache
+from urllib.parse import urlsplit
 
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,18 +9,35 @@ class Settings(BaseSettings):
     app_name: str = "CrashSense API"
     app_version: str = "0.1.0"
     environment: str = "development"
-    debug: bool = True
+    debug: bool = False
     api_v1_prefix: str = "/api/v1"
     # Video upload and local storage
     video_storage_dir: str = "storage/videos"
-    max_video_upload_size_mb: int = 100
+    max_video_upload_size_mb: int = Field(default=100, gt=0, le=4096)
+    cors_allowed_origins: list[str] = Field(default_factory=list)
+    detection_model_weights: str = Field(default="yolov8n.pt", min_length=1)
+    detection_device: str = "auto"
+    detection_confidence_threshold: float = Field(default=0.25, ge=0, le=1)
+    detection_iou_threshold: float = Field(default=0.45, ge=0, le=1)
+    detection_frame_interval_seconds: float = Field(default=1.0, gt=0)
+    detection_max_frame_dimension: int = Field(default=1280, gt=0)
+    detection_min_candidate_observations: int = Field(default=2, ge=1)
+    detection_min_verified_observations: int = Field(default=4, ge=1)
+    detection_min_motion_events: int = Field(default=2, ge=1)
+    detection_interaction_distance_ratio: float = Field(default=0.08, gt=0, le=1)
+    detection_min_speed_pixels_per_second: float = Field(default=12.0, gt=0)
+    detection_stop_speed_ratio: float = Field(default=0.2, ge=0, le=1)
+    detection_worker_poll_seconds: float = Field(default=1.0, gt=0)
+    detection_stale_job_minutes: int = Field(default=60, gt=0)
+    osm_overpass_url: str = "https://overpass-api.de/api/interpreter"
+    osm_overpass_timeout_seconds: float = Field(default=10.0, gt=0, le=30)
 
     database_host: str = "localhost"
     database_port: int = 5432
     database_name: str = "crashsense"
     database_user: str = "crashsense_app"
-    database_password: str
-    jwt_secret_key: str
+    database_password: str = Field(min_length=1)
+    jwt_secret_key: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
 
@@ -27,6 +46,49 @@ class Settings(BaseSettings):
     initial_admin_password: str | None = None
     initial_admin_first_name: str = "System"
     initial_admin_last_name: str = "Administrator"
+
+    @field_validator("database_password", "jwt_secret_key")
+    @classmethod
+    def reject_example_secrets(cls, value: str) -> str:
+        if value.strip().lower().startswith(
+            ("replace_with_", "change_me", "your_secret")
+        ):
+            raise ValueError("Replace the example credential with a unique secret.")
+        return value
+
+    @field_validator("cors_allowed_origins")
+    @classmethod
+    def validate_cors_origins(cls, origins: list[str]) -> list[str]:
+        normalized = [origin.strip().rstrip("/") for origin in origins]
+        for origin in normalized:
+            parsed = urlsplit(origin)
+            if (
+                not origin
+                or origin == "*"
+                or parsed.scheme not in {"http", "https"}
+                or not parsed.netloc
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+                or parsed.username
+                or parsed.password
+            ):
+                raise ValueError(
+                    "CORS entries must be explicit HTTP(S) origins without paths."
+                )
+            try:
+                parsed.port
+            except ValueError as exc:
+                raise ValueError("A CORS origin contains an invalid port.") from exc
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> "Settings":
+        if self.environment.lower() == "production" and self.debug:
+            raise ValueError("DEBUG must be false in production.")
+        if self.environment.lower() == "production" and len(self.database_password) < 16:
+            raise ValueError("Production database passwords must be at least 16 characters.")
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -8,7 +8,7 @@ from app.models.base import Base
 
 # Import models here as they are created.
 # Example: from app.models import user
-from app.models import User, Video  # noqa: F401
+from app.models import AnalysisJob, Camera, EmergencyAlertAudit, User, Video  # noqa: F401
 
 config = context.config
 

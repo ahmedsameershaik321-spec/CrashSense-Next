@@ -22,6 +22,12 @@ def bootstrap_admin() -> None:
             "Initial administrator password must contain "
             "at least 16 characters."
         )
+    if password.strip().lower().startswith(
+        ("replace_with_", "change_me", "your_password")
+    ):
+        raise RuntimeError(
+            "Replace the example initial administrator password before bootstrap."
+        )
 
     with SessionLocal() as db:
         try:

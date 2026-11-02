@@ -4,7 +4,7 @@
 Project: CrashSense
 Repository: CrashSense-Next
 Primary Branch: main
-Status: Architecture Foundation
+Status: Operator and administrator workflows implemented; deployment configuration prepared
 
 ## DEVELOPMENT RULES
 
@@ -23,7 +23,7 @@ Status: Architecture Foundation
 
 - [ ] Establish project architecture.
 - [ ] Configure Git and GitHub.
-- [ ] Create frontend project.
+- [x] Create frontend project.
 - [ ] Create backend project.
 - [ ] Create ML engine project.
 - [ ] Configure environment variables.
@@ -37,58 +37,65 @@ Status: Architecture Foundation
 - [ ] Configure SQLAlchemy.
 - [ ] Configure Alembic.
 - [ ] Implement centralized configuration.
-- [ ] Implement error handling.
-- [ ] Implement health check endpoint.
-- [ ] Implement API versioning.
+- [x] Implement error handling.
+- [x] Implement database-aware health check endpoint.
+- [x] Implement API versioning.
 
 ## PHASE 3 — AUTHENTICATION AND SECURITY
 
-- [ ] User registration.
-- [ ] Secure password hashing.
-- [ ] User login.
-- [ ] JWT authentication.
+- [x] User registration with pending-only role assignment.
+- [x] Secure password hashing.
+- [x] User login.
+- [x] JWT authentication.
 - [ ] Refresh token strategy.
-- [ ] Role-based access control.
-- [ ] Pending user approval.
-- [ ] Administrator role management.
-- [ ] Audit logging.
-- [ ] Authorization tests.
+- [x] Role-based access control.
+- [x] Pending user approval.
+- [x] Administrator role management.
+- [x] Audit-only emergency alert history (external delivery disabled).
+- [x] Authorization tests.
 
 ## PHASE 4 — FRONTEND
 
-- [ ] Initialize Next.js.
-- [ ] Configure TypeScript.
-- [ ] Configure Tailwind CSS.
+- [x] Initialize Next.js.
+- [x] Configure TypeScript.
+- [x] Configure Tailwind CSS.
 - [ ] Configure shadcn/ui.
-- [ ] Design application layout.
-- [ ] Build login and registration pages.
-- [ ] Build dashboard.
-- [ ] Build monitoring interface.
-- [ ] Build administrator interface.
+- [x] Design application layout.
+- [x] Build login and registration pages.
+- [x] Build dashboard overview.
+- [x] Integrate frontend authentication with existing backend endpoints.
+- [x] Build protected video library, upload, details, playback, and deletion UI.
+- [x] Integrate background analysis job submission, status polling, and history reopening.
+- [x] Build analysis result and incident review dashboard with sampled evidence.
+- [x] Add camera-location, nearby-resource, and audit-only alert panels to incident review.
+- [x] Build operator video, analysis, and incident review workflows.
+- [x] Build administrator user-management dashboard.
 - [ ] Build incident management interface.
 - [ ] Build analytics interface.
-- [ ] Integrate backend APIs.
+- [x] Integrate implemented frontend workflows with backend APIs.
 
 ## PHASE 5 — VIDEO MANAGEMENT
 
-- [ ] Camera registration.
-- [ ] Camera metadata management.
-- [ ] Video upload.
-- [ ] Video validation.
-- [ ] Video storage.
+- [x] Camera registration.
+- [x] Camera metadata management.
+- [x] Video upload.
+- [x] Video validation.
+- [x] Video storage.
+- [x] Protected video streaming with HTTP byte-range support.
+- [x] Persistent YOLOv8 accident-analysis pipeline.
 - [ ] Camera monitoring.
-- [ ] Video processing pipeline.
+- [x] Video processing pipeline.
 
 ## PHASE 6 — COMPUTER VISION
 
 - [ ] Dataset research.
 - [ ] Dataset preparation.
-- [ ] YOLO model selection.
+- [x] YOLO model selection.
 - [ ] Model training or fine-tuning.
-- [ ] Vehicle detection.
-- [ ] Object tracking.
-- [ ] Accident candidate detection.
-- [ ] Temporal verification.
+- [x] Vehicle detection.
+- [x] Object tracking.
+- [x] Accident candidate detection.
+- [x] Temporal verification.
 - [ ] False-positive evaluation.
 - [ ] Model evaluation.
 
@@ -104,13 +111,13 @@ Status: Architecture Foundation
 ## PHASE 8 — LOCATION AND EMERGENCY RESPONSE
 
 - [ ] Camera GPS integration.
-- [ ] Incident location management.
-- [ ] Leaflet map integration.
-- [ ] Nearby hospital discovery.
-- [ ] Emergency resource management.
+- [x] Registered camera location assignment to videos (location proxy only).
+- [x] Leaflet map integration with OpenStreetMap attribution.
+- [x] Nearby hospital and emergency-resource discovery using OpenStreetMap.
+- [x] Display and distance-prioritize mapped emergency resources.
 - [ ] Notification system.
 - [ ] Response tracking.
-- [ ] Notification audit history.
+- [x] Audit-only notification history with delivery constrained to `not_sent`.
 
 ## PHASE 9 — ANALYTICS
 
@@ -122,17 +129,17 @@ Status: Architecture Foundation
 
 ## PHASE 10 — TESTING AND DEPLOYMENT
 
-- [ ] Backend unit tests.
-- [ ] Frontend component tests.
-- [ ] API integration tests.
-- [ ] Authentication tests.
-- [ ] Authorization tests.
+- [x] Backend unit tests.
+- [x] Frontend component tests.
+- [x] API integration tests.
+- [x] Authentication tests.
+- [x] Authorization tests.
 - [ ] ML evaluation tests.
 - [ ] End-to-end tests.
 - [ ] Security review.
 - [ ] Performance testing.
-- [ ] Deployment configuration.
-- [ ] Production documentation.
+- [x] Docker Compose deployment configuration with PostgreSQL and persistent volumes.
+- [x] Production startup and configuration documentation.
 
 ## CURRENT DEVELOPMENT POLICY
 
