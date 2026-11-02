@@ -49,3 +49,20 @@ desktop.ini
 
 # CrashSense uploaded videos and local storage
 /backend/storage/
+# Local databases and data
+*.db
+*.sqlite
+*.sqlite3
+
+# Python test and coverage artifacts
+.coverage
+htmlcov/
+
+# Local environment files in subdirectories
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local uploads and generated media
+test-videos/
+uploads/
