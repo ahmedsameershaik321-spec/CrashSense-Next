@@ -450,19 +450,26 @@ class AccidentCandidateDetector:
                 interaction.observations
                 < settings.detection_min_candidate_observations
                 or interaction.motion_events == 0
-                or not self._has_temporal_response(interaction)
             ):
                 continue
 
+            has_response = self._has_temporal_response(interaction)
             verified = (
-                interaction.observations
+                has_response
+                and interaction.observations
                 >= settings.detection_min_verified_observations
                 and interaction.motion_events >= settings.detection_min_motion_events
             )
             persistence_score = min(interaction.observations / 6, 1.0)
             motion_score = min(interaction.motion_events / 4, 1.0)
             confidence_score = round(
-                min(0.95, 0.2 + 0.35 * persistence_score + 0.4 * motion_score),
+                min(
+                    0.95,
+                    0.15
+                    + 0.3 * persistence_score
+                    + 0.35 * motion_score
+                    + (0.15 if has_response else 0.0),
+                ),
                 3,
             )
             status = "verified_detection" if verified else "suspected"
