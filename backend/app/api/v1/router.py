@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import admin, auth, cameras, health, operator, videos
+from app.api.v1.endpoints import admin, auth, cameras, dashboard, health, operator, videos
 
 api_router = APIRouter()
 
@@ -10,3 +10,4 @@ api_router.include_router(operator.router)
 api_router.include_router(admin.router)
 api_router.include_router(cameras.router)
 api_router.include_router(videos.router)
+api_router.include_router(dashboard.router)

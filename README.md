@@ -105,6 +105,17 @@ public registration always creates a pending, inactive account.
 - Bearer access tokens remain in frontend memory. The protected video player
   uses a short-lived HttpOnly, SameSite=Strict cookie scoped to its media route.
 
+## Dashboard overview
+
+The authenticated `GET /api/v1/dashboard/summary` endpoint supplies workspace
+video totals, completed and queued/processing analysis counts, candidate totals
+from completed analysis summaries, the eight most recent analysis jobs, and
+whether this API process's analysis worker is running. It is restricted to
+active monitoring operators and administrators. Empty databases return zero
+counts and an empty activity list. Candidate totals are heuristic detections,
+not confirmed incidents; worker state is process-local and is not a distributed
+service-health signal.
+
 ## Video, analysis, location, and alerts
 
 Operators can upload, browse, play, delete, analyze, and review protected

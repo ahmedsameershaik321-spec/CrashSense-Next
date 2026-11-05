@@ -186,6 +186,25 @@ export interface AnalysisResults {
   total_frames: number;
 }
 
+export interface DashboardActivity {
+  analysis_id: string;
+  video_id: string;
+  video_name: string;
+  status: AnalysisStatus;
+  progress: number;
+  candidate_count: number;
+  created_at: string;
+}
+
+export interface DashboardSummary {
+  total_videos: number;
+  completed_analyses: number;
+  processing_analyses: number;
+  detected_candidates: number;
+  analysis_worker_running: boolean;
+  recent_activity: DashboardActivity[];
+}
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -321,6 +340,40 @@ function isAnalysisJob(value: unknown): value is AnalysisJob {
     (typeof value.started_at === "string" || value.started_at === null) &&
     "completed_at" in value &&
     (typeof value.completed_at === "string" || value.completed_at === null)
+  );
+}
+
+function isDashboardActivity(value: unknown): value is DashboardActivity {
+  return (
+    isRecord(value) &&
+    typeof value.analysis_id === "string" &&
+    typeof value.video_id === "string" &&
+    typeof value.video_name === "string" &&
+    typeof value.status === "string" &&
+    [
+      "queued",
+      "processing",
+      "completed",
+      "failed",
+      "cancelled",
+    ].includes(value.status) &&
+    isNonNegativeInteger(value.progress) &&
+    value.progress <= 100 &&
+    isNonNegativeInteger(value.candidate_count) &&
+    typeof value.created_at === "string"
+  );
+}
+
+function isDashboardSummary(value: unknown): value is DashboardSummary {
+  return (
+    isRecord(value) &&
+    isNonNegativeInteger(value.total_videos) &&
+    isNonNegativeInteger(value.completed_analyses) &&
+    isNonNegativeInteger(value.processing_analyses) &&
+    isNonNegativeInteger(value.detected_candidates) &&
+    typeof value.analysis_worker_running === "boolean" &&
+    Array.isArray(value.recent_activity) &&
+    value.recent_activity.every(isDashboardActivity)
   );
 }
 
@@ -571,6 +624,17 @@ export function login(
 export function getCurrentUser(token: string): Promise<CurrentUser> {
   return request<CurrentUser>("/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export function getDashboardSummary(token: string): Promise<DashboardSummary> {
+  return request<unknown>("/dashboard/summary", {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((body) => {
+    if (!isDashboardSummary(body)) {
+      throw new ApiError("The server returned an invalid dashboard summary.", 502);
+    }
+    return body;
   });
 }
 

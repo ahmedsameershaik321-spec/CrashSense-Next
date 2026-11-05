@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
-  Bell,
   ChevronLeft,
   CircleHelp,
   LayoutDashboard,
@@ -120,9 +119,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               return (
                 <Link
                   aria-current={active ? "page" : undefined}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                     active
-                      ? "bg-sky-400/[0.11] font-medium text-sky-200"
+                      ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
                       : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
                   }`}
                   href={item.href}
@@ -155,9 +154,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 return (
                   <Link
                     aria-current={active ? "page" : undefined}
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                       active
-                        ? "bg-sky-400/[0.11] font-medium text-sky-200"
+                        ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
                         : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
                     }`}
                     href={item.href}
@@ -192,9 +191,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 aria-current={
                   pathname.startsWith("/dashboard/admin") ? "page" : undefined
                 }
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                   pathname.startsWith("/dashboard/admin")
-                    ? "bg-sky-400/[0.11] font-medium text-sky-200"
+                    ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
                     : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
                 }`}
                 href="/dashboard/admin"
@@ -267,17 +266,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <span className="hidden items-center gap-2 rounded-full border border-emerald-300/10 bg-emerald-300/[0.05] px-3 py-1.5 text-[11px] font-medium text-emerald-200 sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-              Authorized session
+              Secure session
             </span>
-            <button
-              aria-label="Notifications are not configured"
-              className="rounded-lg border border-line p-2 text-slate-500"
-              disabled
-              title="Notifications are not configured"
-              type="button"
-            >
-              <Bell aria-hidden="true" className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2.5 border-l border-line pl-3 sm:pl-4">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-300/15 bg-sky-300/[0.08] text-[11px] font-semibold text-sky-200">
+                {initials || "CS"}
+              </span>
+              <div className="hidden min-w-0 sm:block">
+                <p className="max-w-36 truncate text-xs font-medium text-slate-200">
+                  {fullName}
+                </p>
+                <p className="mt-0.5 text-[10px] capitalize text-slate-500">
+                  {session.user.role.replaceAll("_", " ")}
+                </p>
+              </div>
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1500px] p-5 sm:p-8 lg:p-10">

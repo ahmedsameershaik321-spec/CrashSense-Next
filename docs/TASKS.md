@@ -63,6 +63,7 @@ Status: Operator and administrator workflows implemented; deployment configurati
 - [x] Design application layout.
 - [x] Build login and registration pages.
 - [x] Build dashboard overview.
+- [x] Add authenticated dashboard aggregates and recent analysis activity.
 - [x] Integrate frontend authentication with existing backend endpoints.
 - [x] Build protected video library, upload, details, playback, and deletion UI.
 - [x] Integrate background analysis job submission, status polling, and history reopening.
