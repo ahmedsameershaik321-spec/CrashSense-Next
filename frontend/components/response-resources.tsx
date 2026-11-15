@@ -235,24 +235,24 @@ export function ResponseResources({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-200">
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
             <MapPin aria-hidden="true" className="h-4 w-4" />
             Location & response resources
           </p>
           <h2
-            className="mt-2 text-base font-semibold text-white"
+            className="mt-2 text-base font-semibold text-slate-900"
             id="response-resources-title"
           >
             Approximate scene location
           </h2>
-          <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-400">
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">
             A registered camera location is only a scene-location proxy. It is
             not GPS extracted from the video or a verified point of impact.
           </p>
         </div>
         <button
           aria-label="Refresh location and resources"
-          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-300 hover:bg-white/[0.04] disabled:opacity-50"
+          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-50"
           disabled={loading || resourceLoading}
           onClick={refresh}
           type="button"
@@ -263,18 +263,18 @@ export function ResponseResources({
       </div>
 
       {loading ? (
-        <div className="mt-5 flex items-center gap-2 text-xs text-slate-400" role="status">
+        <div className="mt-5 flex items-center gap-2 text-xs text-slate-600" role="status">
           <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
           Loading registered camera location…
         </div>
       ) : error ? (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-300/15 bg-rose-300/[0.04] p-3">
-          <p className="flex items-center gap-2 text-xs text-rose-200" role="alert">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3">
+          <p className="flex items-center gap-2 text-xs text-rose-700" role="alert">
             <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
             {error}
           </p>
           <button
-            className="rounded-md border border-line px-3 py-1.5 text-xs text-slate-200"
+            className="rounded-md border border-line px-3 py-1.5 text-xs text-slate-700"
             onClick={refresh}
             type="button"
           >
@@ -302,14 +302,14 @@ export function ResponseResources({
             </p>
           </div>
           <div className="space-y-3">
-            <div className="rounded-lg border border-line bg-[#09121f]/70 p-3">
+            <div className="rounded-lg border border-line bg-slate-50 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 Registered camera
               </p>
-              <p className="mt-1 text-sm font-semibold text-white">
+              <p className="mt-1 text-sm font-semibold text-slate-900">
                 {location.camera.name}
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-slate-600">
                 {location.camera.address || "No address recorded"}
               </p>
               <p className="mt-2 font-mono text-[10px] text-slate-500">
@@ -318,13 +318,13 @@ export function ResponseResources({
               </p>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <h3 className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-                <Hospital aria-hidden="true" className="h-4 w-4 text-emerald-300" />
+              <h3 className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <Hospital aria-hidden="true" className="h-4 w-4 text-emerald-800" />
                 Nearby mapped resources
               </h3>
               {sourceUrl && (
                 <a
-                  className="inline-flex items-center gap-1 text-[10px] text-sky-200 hover:text-white"
+                  className="inline-flex items-center gap-1 text-[10px] text-blue-700 hover:text-slate-900"
                   href={sourceUrl}
                   rel="noreferrer"
                   target="_blank"
@@ -335,15 +335,15 @@ export function ResponseResources({
               )}
             </div>
             {resourceLoading ? (
-              <p className="flex items-center gap-2 text-xs text-slate-400" role="status">
+              <p className="flex items-center gap-2 text-xs text-slate-600" role="status">
                 <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
                 Searching mapped resources…
               </p>
             ) : resourceError ? (
-              <div className="rounded-lg border border-amber-200/10 bg-amber-200/[0.04] p-3">
-                <p className="text-xs text-amber-100" role="alert">{resourceError}</p>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <p className="text-xs text-amber-800" role="alert">{resourceError}</p>
                 <button
-                  className="mt-2 rounded-md border border-line px-3 py-1.5 text-[10px] text-slate-200"
+                  className="mt-2 rounded-md border border-line px-3 py-1.5 text-[10px] text-slate-700"
                   onClick={() => setRefreshVersion((current) => current + 1)}
                   type="button"
                 >
@@ -351,7 +351,7 @@ export function ResponseResources({
                 </button>
               </div>
             ) : resources.length === 0 ? (
-              <p className="rounded-lg border border-line bg-[#09121f]/70 p-3 text-xs text-slate-500">
+              <p className="rounded-lg border border-line bg-slate-50 p-3 text-xs text-slate-500">
                 No hospitals, clinics, ambulance stations, or fire stations were
                 returned in the searched radius.
               </p>
@@ -359,19 +359,19 @@ export function ResponseResources({
               <ol aria-label="Nearby emergency resources, ordered by distance" className="max-h-80 space-y-2 overflow-auto">
                 {resources.map((resource, index) => (
                   <li
-                    className="rounded-lg border border-line bg-[#09121f]/70 p-3"
+                    className="rounded-lg border border-line bg-slate-50 p-3"
                     key={`${resource.osm_type}-${resource.osm_id}`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-semibold text-slate-100">
+                        <p className="truncate text-xs font-semibold text-slate-900">
                           {index + 1}. {resource.name}
                         </p>
                         <p className="mt-1 text-[10px] capitalize text-slate-500">
                           {resourceLabel(resource)}
                         </p>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] text-emerald-200">
+                      <span className="shrink-0 font-mono text-[10px] text-emerald-800">
                         {(resource.distance_meters / 1000).toFixed(2)} km
                       </span>
                     </div>
@@ -385,8 +385,8 @@ export function ResponseResources({
           </div>
         </div>
       ) : (
-        <div className="mt-5 rounded-lg border border-dashed border-line bg-[#09121f]/60 p-4">
-          <p className="text-sm font-medium text-slate-200">
+        <div className="mt-5 rounded-lg border border-dashed border-line bg-slate-50 p-4">
+          <p className="text-sm font-medium text-slate-700">
             No active camera location is assigned
           </p>
           <p className="mt-1 text-xs leading-5 text-slate-500">
@@ -397,13 +397,13 @@ export function ResponseResources({
       )}
 
       {notice && (
-        <p className="mt-4 flex items-center gap-2 text-xs text-emerald-200" role="status">
+        <p className="mt-4 flex items-center gap-2 text-xs text-emerald-800" role="status">
           <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
           {notice}
         </p>
       )}
       {cameraError && (
-        <p className="mt-4 flex items-center gap-2 text-xs text-rose-200" role="alert">
+        <p className="mt-4 flex items-center gap-2 text-xs text-rose-700" role="alert">
           <AlertCircle aria-hidden="true" className="h-4 w-4" />
           {cameraError}
         </p>
@@ -411,7 +411,7 @@ export function ResponseResources({
 
       {isAdministrator && (
         <div className="mt-5 border-t border-line pt-4">
-          <h3 className="text-xs font-semibold text-slate-200">
+          <h3 className="text-xs font-semibold text-slate-700">
             Administrator camera assignment
           </h3>
           {cameras.length > 0 && (
@@ -433,7 +433,7 @@ export function ResponseResources({
                 ))}
               </select>
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-200 hover:bg-white/[0.04] disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 disabled={saving || selectedCameraId === (location?.camera?.id ?? "")}
                 onClick={() => void handleAssignCamera()}
                 type="button"
@@ -444,10 +444,10 @@ export function ResponseResources({
             </div>
           )}
           {cameraError && !cameras.length && (
-            <p className="mt-2 text-xs text-amber-100">{cameraError}</p>
+            <p className="mt-2 text-xs text-amber-800">{cameraError}</p>
           )}
-          <details className="mt-4 rounded-lg border border-line bg-[#09121f]/50 p-3">
-            <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-medium text-slate-300">
+          <details className="mt-4 rounded-lg border border-line bg-slate-50 p-3">
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-medium text-slate-600">
               <Plus aria-hidden="true" className="h-4 w-4" />
               Register a camera location
             </summary>
@@ -455,7 +455,7 @@ export function ResponseResources({
               className="mt-3 grid gap-3 sm:grid-cols-2"
               onSubmit={(event) => void handleRegisterCamera(event)}
             >
-              <label className="text-[10px] text-slate-400">
+              <label className="text-[10px] text-slate-600">
                 Camera name
                 <input
                   className="field-input mt-1"
@@ -465,7 +465,7 @@ export function ResponseResources({
                   value={cameraName}
                 />
               </label>
-              <label className="text-[10px] text-slate-400">
+              <label className="text-[10px] text-slate-600">
                 Address (optional)
                 <input
                   className="field-input mt-1"
@@ -474,7 +474,7 @@ export function ResponseResources({
                   value={address}
                 />
               </label>
-              <label className="text-[10px] text-slate-400">
+              <label className="text-[10px] text-slate-600">
                 Latitude
                 <input
                   className="field-input mt-1"
@@ -487,7 +487,7 @@ export function ResponseResources({
                   value={latitude}
                 />
               </label>
-              <label className="text-[10px] text-slate-400">
+              <label className="text-[10px] text-slate-600">
                 Longitude
                 <input
                   className="field-input mt-1"
@@ -511,11 +511,11 @@ export function ResponseResources({
             </form>
           </details>
           {cameraError && (
-            <p className="mt-3 text-xs text-rose-200" role="alert">{cameraError}</p>
+            <p className="mt-3 text-xs text-rose-700" role="alert">{cameraError}</p>
           )}
         </div>
       )}
-      <p className="mt-4 flex items-start gap-2 border-t border-line pt-3 text-[10px] leading-4 text-amber-100/80">
+      <p className="mt-4 flex items-start gap-2 border-t border-line pt-3 text-[10px] leading-4 text-amber-800">
         <ShieldAlert aria-hidden="true" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         This is reference information only—not an emergency dispatch or a
         guarantee of service availability.

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 AnalysisStatus = Literal[
@@ -52,3 +52,22 @@ class AccidentCandidateResponse(BaseModel):
     evidence_references: list[str]
     interaction_observations: int
     motion_events: int
+    event_state: Literal["suspected", "needs_review"] = "suspected"
+    accident_category: Literal[
+        "VEHICLE_TO_VEHICLE",
+        "VEHICLE_TO_OBJECT",
+        "ROLLOVER",
+        "MULTI_VEHICLE",
+        "PEDESTRIAN_RELATED",
+        "OTHER",
+        "UNKNOWN",
+    ] = "UNKNOWN"
+    classification_confidence: float | None = None
+    classification_reasoning: str = (
+        "Accident category is unavailable from the current detection evidence."
+    )
+    severity: Literal["LOW", "MODERATE", "HIGH", "CRITICAL", "UNKNOWN"] = "UNKNOWN"
+    severity_confidence: float | None = None
+    severity_reasoning_factors: list[str] = Field(default_factory=list)
+    severity_missing_information: list[str] = Field(default_factory=list)
+    human_review_required: bool = True

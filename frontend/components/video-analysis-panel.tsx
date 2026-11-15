@@ -35,11 +35,11 @@ const statusLabels: Record<AnalysisStatus, string> = {
 };
 
 const statusStyles: Record<AnalysisStatus, string> = {
-  queued: "border-sky-200/10 bg-sky-300/[0.06] text-sky-200",
-  processing: "border-amber-200/10 bg-amber-300/[0.06] text-amber-200",
-  completed: "border-emerald-200/10 bg-emerald-300/[0.06] text-emerald-200",
-  failed: "border-rose-200/10 bg-rose-300/[0.06] text-rose-200",
-  cancelled: "border-slate-200/10 bg-slate-300/[0.05] text-slate-300",
+  queued: "border-blue-200 bg-blue-50 text-blue-700",
+  processing: "border-amber-200 bg-amber-50 text-amber-800",
+  completed: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  failed: "border-rose-200 bg-rose-50 text-rose-700",
+  cancelled: "border-slate-200/10 bg-slate-300/[0.05] text-slate-600",
 };
 
 const terminalStatuses = new Set<AnalysisStatus>([
@@ -275,9 +275,9 @@ export function VideoAnalysisPanel({
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div>
           <div className="flex items-center gap-2">
-            <CircleDot aria-hidden="true" className="h-4 w-4 text-sky-200" />
+            <CircleDot aria-hidden="true" className="h-4 w-4 text-blue-700" />
             <h2
-              className="text-sm font-semibold text-white"
+              className="text-sm font-semibold text-slate-900"
               id={`analysis-title-${videoId}`}
             >
               {compact ? "Video analysis" : "Accident analysis"}
@@ -294,7 +294,7 @@ export function VideoAnalysisPanel({
           className={`inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
             canStart
               ? "bg-accent-strong text-white hover:bg-sky-500"
-              : "border border-line bg-white/[0.025] text-slate-400"
+              : "border border-line bg-slate-50 text-slate-600"
           }`}
           disabled={!canStart}
           onClick={() => void submitAnalysis()}
@@ -321,7 +321,7 @@ export function VideoAnalysisPanel({
 
       {submissionError && (
         <p
-          className="mt-4 rounded-lg border border-rose-300/15 bg-rose-300/[0.06] px-3 py-2.5 text-sm text-rose-200"
+          className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700"
           role="alert"
         >
           {submissionError}
@@ -329,7 +329,7 @@ export function VideoAnalysisPanel({
       )}
       {historyError && (
         <p
-          className="mt-3 rounded-lg border border-amber-300/15 bg-amber-300/[0.05] px-3 py-2.5 text-xs text-amber-100"
+          className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800"
           role="status"
         >
           {historyError}
@@ -386,10 +386,10 @@ function AnalysisJobItem({
             : Clock3;
 
   return (
-    <article className="rounded-lg border border-line bg-[#09121f]/70">
+    <article className="rounded-lg border border-line bg-slate-50">
       <button
         aria-expanded={expanded}
-        className={`flex w-full items-center justify-between gap-3 text-left hover:bg-white/[0.02] ${
+        className={`flex w-full items-center justify-between gap-3 text-left hover:bg-slate-50 ${
           compact ? "p-2.5" : "p-3.5"
         }`}
         onClick={onToggle}
@@ -402,16 +402,16 @@ function AnalysisJobItem({
               job.status === "processing" ? "animate-spin" : ""
             } ${
               job.status === "completed"
-                ? "text-emerald-200"
+                ? "text-emerald-800"
                 : job.status === "failed"
-                  ? "text-rose-200"
+                  ? "text-rose-700"
                   : job.status === "processing"
-                    ? "text-amber-200"
-                    : "text-sky-200"
+                    ? "text-amber-800"
+                    : "text-blue-700"
             }`}
           />
           <span className="min-w-0">
-            <span className="block truncate font-mono text-[11px] text-slate-300">
+            <span className="block truncate font-mono text-[11px] text-slate-600">
               Job {job.id.slice(0, 8)}
             </span>
             <span className="mt-0.5 block text-[10px] text-slate-600">
@@ -432,7 +432,7 @@ function AnalysisJobItem({
         <div className="border-t border-line px-3.5 py-3.5">
           <div className="flex items-center justify-between gap-3 text-xs">
             <span className="text-slate-500">Job ID</span>
-            <span className="break-all font-mono text-[10px] text-slate-400">
+            <span className="break-all font-mono text-[10px] text-slate-600">
               {job.id}
             </span>
           </div>
@@ -459,11 +459,11 @@ function AnalysisJobItem({
           )}
           {job.status === "completed" && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-emerald-200">
+              <p className="text-xs text-emerald-800">
                 Processing completed with backend-reported progress of {job.progress}%.
               </p>
               <Link
-                className="text-xs font-medium text-sky-200 hover:text-white"
+                className="text-xs font-medium text-blue-700 hover:text-slate-900"
                 href={`/dashboard/analysis/${encodeURIComponent(job.id)}`}
               >
                 Review results
@@ -471,22 +471,22 @@ function AnalysisJobItem({
             </div>
           )}
           {job.status === "failed" && (
-            <p className="mt-3 text-xs text-rose-200">
+            <p className="mt-3 text-xs text-rose-700">
               {job.error_message || "Analysis failed without a server-provided error message."}
             </p>
           )}
           {job.status === "cancelled" && (
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-slate-600">
               This analysis job was cancelled.
             </p>
           )}
           {job.cancel_requested && isActive(job) && (
-            <p className="mt-2 text-[10px] text-amber-200">
+            <p className="mt-2 text-[10px] text-amber-800">
               Cancellation was requested by an authorized user.
             </p>
           )}
           {pollError && (
-            <p className="mt-3 text-xs text-rose-200" role="alert">
+            <p className="mt-3 text-xs text-rose-700" role="alert">
               Status refresh failed: {pollError}
             </p>
           )}

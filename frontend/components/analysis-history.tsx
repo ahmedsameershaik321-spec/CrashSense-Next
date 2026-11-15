@@ -132,22 +132,22 @@ export function AnalysisHistory({
   }
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-200">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
             Monitoring
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            Incident review
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+            Analysis history
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Review saved analysis jobs and inspect their backend-reported
             candidates and frame evidence.
           </p>
         </div>
         <button
-          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.04]"
+          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
           onClick={() => void loadHistory()}
           type="button"
         >
@@ -156,7 +156,7 @@ export function AnalysisHistory({
         </button>
       </div>
 
-      <div className="rounded-xl border border-amber-200/10 bg-amber-300/[0.04] p-4 text-xs leading-5 text-amber-100/80">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800">
         The API does not expose a history-list endpoint. This list contains up
         to {MAX_HISTORY_ENTRIES} job IDs saved by this browser; each displayed
         status is reloaded from the protected API.
@@ -164,7 +164,7 @@ export function AnalysisHistory({
 
       {error && (
         <p
-          className="rounded-lg border border-rose-300/15 bg-rose-300/[0.05] p-3 text-sm text-rose-200"
+          className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
           role="alert"
         >
           {error}
@@ -177,7 +177,7 @@ export function AnalysisHistory({
             aria-hidden="true"
             className="mx-auto h-8 w-8 text-slate-600"
           />
-          <h2 className="mt-4 text-sm font-semibold text-slate-200">
+          <h2 className="mt-4 text-sm font-semibold text-slate-700">
             No saved analysis jobs
           </h2>
           <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500">
@@ -205,7 +205,7 @@ export function AnalysisHistory({
               key={record.id}
             >
               <div className="flex min-w-0 items-start gap-3">
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-sky-200/10 bg-sky-300/[0.05] text-sky-200">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700">
                   {record.job ? (
                     <Clock3 aria-hidden="true" className="h-4 w-4" />
                   ) : (
@@ -213,7 +213,7 @@ export function AnalysisHistory({
                   )}
                 </span>
                 <div className="min-w-0">
-                  <p className="break-all font-mono text-xs text-slate-200">
+                  <p className="break-all font-mono text-xs text-slate-700">
                     Job {record.id}
                   </p>
                   <p className="mt-1 break-all font-mono text-[10px] text-slate-500">
@@ -225,7 +225,7 @@ export function AnalysisHistory({
                     </p>
                   )}
                   {record.error && (
-                    <p className="mt-2 text-xs text-rose-200" role="alert">
+                    <p className="mt-2 text-xs text-rose-700" role="alert">
                       {record.error}
                     </p>
                   )}
@@ -236,12 +236,12 @@ export function AnalysisHistory({
                   <span
                     className={`rounded-full border px-2.5 py-1 text-[10px] font-medium ${
                       record.job.status === "completed"
-                        ? "border-emerald-200/10 bg-emerald-300/[0.05] text-emerald-200"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                         : record.job.status === "failed"
-                          ? "border-rose-200/10 bg-rose-300/[0.05] text-rose-200"
+                          ? "border-rose-200 bg-rose-50 text-rose-700"
                           : record.job.status === "processing"
-                            ? "border-amber-200/10 bg-amber-300/[0.05] text-amber-200"
-                            : "border-line text-slate-300"
+                            ? "border-amber-200 bg-amber-50 text-amber-800"
+                            : "border-line text-slate-600"
                     }`}
                   >
                     {record.job.status}
@@ -256,7 +256,7 @@ export function AnalysisHistory({
                   </span>
                 )}
                 <Link
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-sky-200 hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 hover:text-slate-900"
                   href={`/dashboard/analysis/${encodeURIComponent(record.id)}`}
                 >
                   Review

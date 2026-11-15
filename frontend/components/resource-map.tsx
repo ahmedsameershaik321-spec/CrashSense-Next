@@ -21,7 +21,7 @@ const IncidentResourceMap = dynamic(
     loading: () => (
       <div
         aria-label="Loading map"
-        className="h-80 animate-pulse rounded-lg border border-line bg-[#09121f]"
+        className="h-80 animate-pulse rounded-lg border border-line bg-white"
         role="status"
       />
     ),

@@ -105,6 +105,18 @@ const candidates = [
     evidence_references: ["frame:12@1.200s"],
     interaction_observations: 3,
     motion_events: 1,
+    event_state: "suspected" as const,
+    accident_category: "UNKNOWN" as const,
+    classification_confidence: null,
+    classification_reasoning:
+      "The available model detects objects, not accident events.",
+    severity: "UNKNOWN" as const,
+    severity_confidence: null,
+    severity_reasoning_factors: [
+      "No validated impact, rollover, damage, or injury signal is available.",
+    ],
+    severity_missing_information: ["Validated collision or impact evidence."],
+    human_review_required: true,
   },
   {
     candidate_id: "tracks:11:12:episode:2",
@@ -119,6 +131,18 @@ const candidates = [
     evidence_references: ["frame:52@5.200s"],
     interaction_observations: 4,
     motion_events: 2,
+    event_state: "needs_review" as const,
+    accident_category: "UNKNOWN" as const,
+    classification_confidence: null,
+    classification_reasoning:
+      "The available model detects objects, not accident events.",
+    severity: "UNKNOWN" as const,
+    severity_confidence: null,
+    severity_reasoning_factors: [
+      "No validated impact, rollover, damage, or injury signal is available.",
+    ],
+    severity_missing_information: ["Validated collision or impact evidence."],
+    human_review_required: true,
   },
 ];
 const evidenceFrames = [
@@ -161,7 +185,26 @@ const analysisResults = {
     model: "yolov8n.pt",
     device: "cuda:0",
     frame_interval_seconds: 1,
+    processing_seconds: 12.5,
+    processing_fps: 1.6,
     notice: "Heuristic visual evidence only; not a calibrated probability.",
+    accident_classification: {
+      label: "UNKNOWN" as const,
+      model_status: "not_configured" as const,
+      model: null,
+      device: "cpu",
+      frames_sampled: 0,
+      windows_evaluated: 0,
+      partial_window_frames: 0,
+      inference_seconds: 0,
+      max_accident_score: null,
+      thresholds: { normal: 0.1, accident: 0.9 },
+      evidence_windows: [],
+      human_review_required: true,
+      confidence: null,
+      reason_code: "weights_not_configured",
+      reason: "No trained accident-classifier checkpoint is configured.",
+    },
   },
   candidates,
   frames: [evidenceFrames[0]],
@@ -550,7 +593,7 @@ describe("video analysis controls", () => {
 });
 
 describe("analysis history and results", () => {
-  it("loads saved jobs from the protected API and links into incident review", async () => {
+  it("loads saved jobs from the protected API and links into analysis review", async () => {
     localStorage.setItem(
       `crashsense.analysis-history.v1:operator-id:${video.id}`,
       JSON.stringify([analysisId]),
@@ -588,9 +631,18 @@ describe("analysis history and results", () => {
     expect(await screen.findByText("45")).toBeInTheDocument();
     expect(screen.getByText("north-road.mp4")).toBeInTheDocument();
     expect(screen.getByText("Potential close tracked interaction; operator review required.")).toBeInTheDocument();
-    expect(screen.getAllByText("Suspected").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Needs human review").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("UNKNOWN")).toHaveLength(3);
+    expect(screen.getByText("Not configured")).toBeInTheDocument();
     expect(
-      screen.getByText(/Suspected candidates require operator review/),
+      screen.getByText("No trained accident-classifier checkpoint is configured."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("1.60 frames/s")).toBeInTheDocument();
+    expect(
+      screen.getByText(/The available model detects objects, not accident events/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/no human confirmation or medical assessment is recorded/i),
     ).toBeInTheDocument();
     expect(await screen.findByText("Frame 12 · 0:01.200")).toBeInTheDocument();
     expect(screen.getByText("Track 7")).toBeInTheDocument();
@@ -600,7 +652,8 @@ describe("analysis history and results", () => {
       await screen.findByText(/Pipeline verification classification/),
     ).toBeInTheDocument();
     expect(await screen.findByText("Frame 52 · 0:05.200")).toBeInTheDocument();
-    expect(screen.getAllByText("Verified detection").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Needs human review").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Verified detection")).not.toBeInTheDocument();
     expect(mocks.getAnalysisFrames).toHaveBeenCalledWith(
       "operator-token",
       analysisId,
@@ -634,7 +687,9 @@ describe("analysis history and results", () => {
       "Your account is not authorized to review analysis results.",
     );
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(await screen.findByText("Candidate review")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Candidate review" }),
+    ).toBeInTheDocument();
   });
 
   it("reports evidence-frame API errors and retries the selected candidate page", async () => {

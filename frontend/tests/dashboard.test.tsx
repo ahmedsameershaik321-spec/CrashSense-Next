@@ -69,7 +69,10 @@ describe("monitoring dashboard", () => {
     render(<DashboardPage />);
 
     expect(await screen.findByText("Good to see you, Casey.")).toBeInTheDocument();
-    expect(screen.getByText("Analysis worker online")).toBeInTheDocument();
+    expect(await screen.findByText("Worker process running")).toBeInTheDocument();
+    expect(
+      screen.getByText(/model readiness is not reported by this API/i),
+    ).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText("5")).toBeInTheDocument();
@@ -114,14 +117,14 @@ describe("monitoring dashboard", () => {
     render(<DashboardPage />);
 
     expect(await screen.findByText("Service unavailable.")).toBeInTheDocument();
-    expect(screen.getByText("System status unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Worker status unavailable")).toBeInTheDocument();
     expect(
       within(screen.getByRole("region", { name: "Monitoring metrics" })).getAllByText("—"),
     ).toHaveLength(4);
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => {
-      expect(screen.getByText("Analysis worker online")).toBeInTheDocument();
+      expect(screen.getByText("Worker process running")).toBeInTheDocument();
     });
     expect(mocks.getDashboardSummary).toHaveBeenCalledTimes(2);
   });

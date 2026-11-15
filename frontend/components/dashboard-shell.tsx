@@ -24,7 +24,7 @@ const navigation = [
 ];
 
 const monitoringNavigation = [
-  { label: "Incident review", href: "/dashboard/analysis", icon: Activity },
+  { label: "Analysis history", href: "/dashboard/analysis", icon: Activity },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -53,7 +53,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-white">
+    <div className="min-h-screen bg-canvas text-slate-900">
       {mobileOpen && (
         <button
           aria-label="Close navigation"
@@ -63,7 +63,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-line bg-[#0a121e] transition-all duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-line bg-white transition-all duration-200 ${
           mobileOpen
             ? "w-[270px] translate-x-0"
             : "w-[270px] -translate-x-full lg:translate-x-0"
@@ -73,7 +73,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <Brand compact={collapsed} />
           <button
             aria-label="Close navigation"
-            className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white lg:hidden"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden"
             onClick={() => setMobileOpen(false)}
             type="button"
           >
@@ -82,7 +82,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {!collapsed && (
             <button
               aria-label="Collapse sidebar"
-              className="hidden rounded-md p-1.5 text-slate-600 transition hover:bg-white/5 hover:text-slate-300 lg:block"
+              className="hidden rounded-md p-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-600 lg:block"
               onClick={() => setCollapsed(true)}
               type="button"
             >
@@ -92,7 +92,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {collapsed && (
             <button
               aria-label="Expand sidebar"
-              className="hidden rounded-md p-1.5 text-slate-600 transition hover:bg-white/5 hover:text-slate-300 lg:block"
+              className="hidden rounded-md p-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-600 lg:block"
               onClick={() => setCollapsed(false)}
               type="button"
             >
@@ -121,8 +121,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   aria-current={active ? "page" : undefined}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                     active
-                      ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
-                      : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
+                      ? "bg-blue-50 font-medium text-blue-800 ring-1 ring-inset ring-blue-200"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                   href={item.href}
                   key={item.href}
@@ -156,8 +156,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                     aria-current={active ? "page" : undefined}
                     className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                       active
-                        ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
-                        : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
+                        ? "bg-blue-50 font-medium text-blue-800 ring-1 ring-inset ring-blue-200"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                     href={item.href}
                     key={item.href}
@@ -193,8 +193,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 }
                 className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition duration-200 ${
                   pathname.startsWith("/dashboard/admin")
-                    ? "bg-gradient-to-r from-sky-400/[0.12] to-sky-400/[0.04] font-medium text-sky-100 ring-1 ring-inset ring-sky-200/[0.08]"
-                    : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
+                    ? "bg-blue-50 font-medium text-blue-800 ring-1 ring-inset ring-blue-200"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
                 href="/dashboard/admin"
                 onClick={() => setMobileOpen(false)}
@@ -209,15 +209,15 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
         <div className="border-t border-line p-3">
           <div
-            className={`mb-3 flex items-center gap-3 rounded-lg bg-white/[0.025] p-2.5 ${
+            className={`mb-3 flex items-center gap-3 rounded-lg bg-slate-50 p-2.5 ${
               collapsed ? "lg:justify-center" : ""
             }`}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-300/15 bg-sky-300/[0.08] text-xs font-semibold text-sky-200">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-semibold text-blue-700">
               {initials || "CS"}
             </span>
             <div className={`min-w-0 ${collapsed ? "lg:hidden" : ""}`}>
-              <p className="truncate text-xs font-medium text-slate-200">
+              <p className="truncate text-xs font-medium text-slate-700">
                 {fullName}
               </p>
               <p className="mt-0.5 truncate text-[10px] text-slate-500">
@@ -226,7 +226,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <button
-            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-400 transition hover:bg-rose-400/[0.07] hover:text-rose-200 ${
+            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 ${
               collapsed ? "lg:justify-center" : ""
             }`}
             onClick={handleSignOut}
@@ -244,19 +244,19 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               aria-label="Open navigation"
-              className="rounded-lg border border-line p-2 text-slate-300 hover:bg-white/[0.04] lg:hidden"
+              className="rounded-lg border border-line p-2 text-slate-600 hover:bg-slate-50 lg:hidden"
               onClick={() => setMobileOpen(true)}
               type="button"
             >
               <Menu aria-hidden="true" className="h-4 w-4" />
             </button>
             <div>
-              <p className="text-sm font-medium text-white">Monitoring workspace</p>
+              <p className="text-sm font-medium text-slate-900">Monitoring workspace</p>
               <p className="mt-0.5 text-xs text-slate-500">
                 {pathname.startsWith("/dashboard/videos")
                   ? "Workspace / Video library"
                   : pathname.startsWith("/dashboard/analysis")
-                    ? "Monitoring / Incident review"
+                    ? "Monitoring / Analysis history"
                     : pathname.startsWith("/dashboard/admin")
                       ? "Administration / User management"
                       : "Workspace / Overview"}
@@ -264,16 +264,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-full border border-emerald-300/10 bg-emerald-300/[0.05] px-3 py-1.5 text-[11px] font-medium text-emerald-200 sm:inline-flex">
+            <span className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-medium text-emerald-800 sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
               Secure session
             </span>
             <div className="flex items-center gap-2.5 border-l border-line pl-3 sm:pl-4">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-300/15 bg-sky-300/[0.08] text-[11px] font-semibold text-sky-200">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-semibold text-blue-700">
                 {initials || "CS"}
               </span>
               <div className="hidden min-w-0 sm:block">
-                <p className="max-w-36 truncate text-xs font-medium text-slate-200">
+                <p className="max-w-36 truncate text-xs font-medium text-slate-700">
                   {fullName}
                 </p>
                 <p className="mt-0.5 text-[10px] capitalize text-slate-500">

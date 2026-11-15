@@ -1,10 +1,13 @@
 import logging
-import re
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
 from app.config import settings
+from app.services.detection.device import (
+    DeviceResolutionError,
+    resolve_device,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -34,39 +37,10 @@ class DetectedObject:
 
 
 def _resolve_device(configured_device: str) -> str:
-    requested = configured_device.lower()
-    if requested == "cpu":
-        return "cpu"
-    if requested != "auto":
-        match = re.fullmatch(r"cuda(?::(\d+))?", requested)
-        if match is None:
-            raise DetectionModelError(
-                "DETECTION_DEVICE must be 'auto', 'cpu', 'cuda', or 'cuda:N'."
-            )
-        try:
-            import torch
-        except ImportError as exc:
-            raise DetectionModelError(
-                "CUDA was requested but PyTorch is not installed."
-            ) from exc
-        device_index = int(match.group(1) or "0")
-        if (
-            not torch.cuda.is_available()
-            or device_index >= torch.cuda.device_count()
-        ):
-            raise DetectionModelError(
-                f"CUDA device {device_index} is unavailable."
-            )
-        return f"cuda:{device_index}"
-
     try:
-        import torch
-    except ImportError as exc:
-        raise DetectionModelError(
-            "PyTorch is required for YOLO inference. Install PyTorch for your platform."
-        ) from exc
-
-    return "cuda:0" if torch.cuda.is_available() else "cpu"
+        return resolve_device(configured_device)
+    except DeviceResolutionError as exc:
+        raise DetectionModelError(str(exc)) from exc
 
 
 @lru_cache(maxsize=2)
@@ -94,6 +68,9 @@ class YOLODetector:
         device = _resolve_device(settings.detection_device)
         self.device = device
         self.model = _load_model(settings.detection_model_weights, device)
+        self.class_labels = self._road_class_labels(
+            getattr(self.model, "names", None)
+        )
 
     def reset_tracking(self) -> None:
         predictor = getattr(self.model, "predictor", None)
@@ -109,9 +86,10 @@ class YOLODetector:
                 source=frame,
                 persist=True,
                 tracker="bytetrack.yaml",
-                classes=list(ROAD_CLASS_IDS),
+                classes=list(self.class_labels),
                 conf=settings.detection_confidence_threshold,
                 iou=settings.detection_iou_threshold,
+                imgsz=settings.detection_image_size,
                 device=self.device,
                 verbose=False,
             )
@@ -121,7 +99,38 @@ class YOLODetector:
         if not results:
             return []
 
-        return self._parse_result(results[0])
+        return self._parse_result(results[0], self.class_labels)
+
+    @staticmethod
+    def _road_class_labels(names: Any) -> dict[int, str]:
+        if isinstance(names, dict):
+            entries = names.items()
+        elif isinstance(names, (list, tuple)):
+            entries = enumerate(names)
+        else:
+            raise DetectionModelError(
+                "The configured model does not expose a supported class mapping."
+            )
+
+        supported_labels = set(CLASS_LABELS.values())
+        labels: dict[int, str] = {}
+        for raw_class_id, raw_label in entries:
+            label = str(raw_label).strip().lower()
+            if label not in supported_labels:
+                continue
+            try:
+                class_id = int(raw_class_id)
+            except (TypeError, ValueError) as exc:
+                raise DetectionModelError(
+                    "The configured model has an invalid class mapping."
+                ) from exc
+            labels[class_id] = label
+
+        if not labels:
+            raise DetectionModelError(
+                "The configured model has no supported COCO road-user classes."
+            )
+        return labels
 
     @staticmethod
     def _values(value: Any) -> list[Any]:
@@ -134,11 +143,16 @@ class YOLODetector:
         return value
 
     @classmethod
-    def _parse_result(cls, result: Any) -> list[DetectedObject]:
+    def _parse_result(
+        cls,
+        result: Any,
+        class_labels: dict[int, str] | None = None,
+    ) -> list[DetectedObject]:
         boxes = getattr(result, "boxes", None)
         if boxes is None:
             return []
 
+        labels = class_labels if class_labels is not None else CLASS_LABELS
         coordinates = cls._values(getattr(boxes, "xyxy", None))
         confidences = cls._values(getattr(boxes, "conf", None))
         class_ids = cls._values(getattr(boxes, "cls", None))
@@ -149,7 +163,7 @@ class YOLODetector:
             zip(coordinates, confidences, class_ids, strict=False)
         ):
             class_id = int(raw_class_id)
-            label = CLASS_LABELS.get(class_id)
+            label = labels.get(class_id)
             if label is None or len(bbox) != 4:
                 continue
             track_id = (

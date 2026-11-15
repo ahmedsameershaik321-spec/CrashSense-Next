@@ -30,37 +30,37 @@ export default function AccessPendingPage() {
     .join(" ");
 
   return (
-    <main className="min-h-screen bg-canvas bg-auth-glow px-5 py-7 text-white sm:px-8">
+    <main className="min-h-screen bg-canvas bg-auth-glow px-5 py-7 text-slate-900 sm:px-8">
       <div className="mx-auto max-w-3xl">
         <Brand />
-        <section className="mt-16 rounded-2xl border border-white/[0.08] bg-panel p-7 shadow-panel sm:mt-24 sm:p-10">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-300/15 bg-amber-300/[0.08] text-amber-200">
+        <section className="mt-16 rounded-xl border border-line bg-panel p-7 shadow-panel sm:mt-24 sm:p-10">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-800">
             {isPending ? (
               <Clock3 aria-hidden="true" className="h-5 w-5" />
             ) : (
               <ShieldAlert aria-hidden="true" className="h-5 w-5" />
             )}
           </span>
-          <p className="mt-7 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+          <p className="mt-7 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
             {isPending ? "Approval required" : "Access unavailable"}
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             {isPending ? "Your request is under review." : "Your account is inactive."}
           </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400">
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
             {isPending
               ? "Your account is pending administrator approval. Monitoring and protected operational features remain unavailable until an authorized administrator approves access."
               : "This account cannot access monitoring features. Contact your CrashSense administrator for assistance."}
           </p>
-          <div className="mt-8 grid gap-3 rounded-xl border border-line bg-[#09121f] p-4 text-sm sm:grid-cols-2">
+          <div className="mt-8 grid gap-3 rounded-xl border border-line bg-white p-4 text-sm sm:grid-cols-2">
             <div>
               <p className="text-xs text-slate-500">Signed in as</p>
-              <p className="mt-1 font-medium text-slate-200">{fullName}</p>
-              <p className="mt-0.5 text-slate-400">{session.user.email}</p>
+              <p className="mt-1 font-medium text-slate-700">{fullName}</p>
+              <p className="mt-0.5 text-slate-600">{session.user.email}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Current role</p>
-              <p className="mt-1 font-medium capitalize text-slate-200">
+              <p className="mt-1 font-medium capitalize text-slate-700">
                 {session.user.role.replaceAll("_", " ")}
               </p>
               <p className="mt-0.5 text-slate-500">
@@ -69,7 +69,7 @@ export default function AccessPendingPage() {
             </div>
           </div>
           <button
-            className="mt-7 inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.04] hover:text-white"
+            className="mt-7 inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
             onClick={() => {
               signOut();
               router.replace("/login");

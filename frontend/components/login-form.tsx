@@ -64,7 +64,7 @@ export function LoginForm() {
       {error && (
         <p
           aria-live="polite"
-          className="rounded-lg border border-rose-400/20 bg-rose-400/[0.07] px-3.5 py-3 text-sm text-rose-200"
+          className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700"
           role="alert"
         >
           {error}

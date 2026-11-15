@@ -47,8 +47,9 @@ file size, extension, and container-signature checks.
 - The backend currently provides bearer JWTs but no refresh or logout endpoint.
   The frontend therefore keeps the token in memory only; reloading the page
   signs the user out rather than storing credentials in browser storage.
-- The backend has no account-wide dashboard summary endpoint. The overview
-  displays authenticated profile fields and does not invent operational counts.
+- `GET /api/v1/dashboard/summary` supplies the dashboard's authenticated video,
+  analysis, candidate, worker-process, and recent-activity data. Recent activity
+  is limited by the API; worker-process state does not establish model readiness.
 
 ## Video management API integration
 
@@ -97,9 +98,9 @@ panel is reopened. No job status, progress, or credentials are treated as
 browser-persisted truth; if the API cannot retrieve a saved ID, that job is
 not shown as available history.
 
-## Analysis results and incident review
+## Analysis history and candidate review
 
-The Monitoring / Incident review navigation lists up to 50 analysis IDs known
+The Monitoring / Analysis history navigation lists up to 50 analysis IDs known
 to the current browser and refreshes their status from the protected API.
 Completed jobs link to `/dashboard/analysis/{analysis_id}` from the history
 list and the video analysis panel.
@@ -116,11 +117,21 @@ The results page uses the existing endpoints:
 Candidate classification, timestamps, track IDs, confidence scores, evidence
 summaries, object labels, and event counts are shown from backend responses.
 The confidence score is presented as a heuristic score, not a probability.
-The current candidate response does not supply a severity field or a typed
-interaction-category field; the interface does not invent either. Any available
-interaction description is displayed only as part of the backend's evidence
-summary. `verified_detection` is labeled as the pipeline classification and
-not as human confirmation, a confirmed collision, injury, or medical finding.
+Candidate responses also include pipeline event state, accident category,
+severity, assessment reasoning, missing information, and human-review
+requirements. Current assessments report `UNKNOWN` category and severity with
+unavailable classification/severity confidence; the interface displays those
+values rather than inferring them. `verified_detection` is treated as a pipeline
+review flag, not as human confirmation, a confirmed collision, injury, or
+medical finding. Reported processing time and throughput are shown when
+available; model readiness is not reported by the API.
+
+The backend has no server-side incident record lifecycle, confirmation or
+rejection workflow, incident-specific coordinates, incident severity
+distribution, historical incident reports, or user-preferences endpoint. The
+analysis-review page is therefore a candidate/evidence review of analysis jobs,
+not a global incident-management system. History IDs are browser-local, and a
+registered camera coordinate remains a scene-location proxy.
 
 The frame endpoint returns JSON metadata (sampled timestamps, dimensions, and
 detections with tracks and bounding boxes), not still-image bytes or frame

@@ -80,17 +80,17 @@ export function VideoUpload({
   return (
     <section
       aria-labelledby="video-upload-title"
-      className="rounded-2xl border border-sky-300/10 bg-gradient-to-br from-[#10233a] via-panel to-panel p-5 sm:p-6"
+      className="rounded-xl border border-line bg-white p-5 sm:p-6"
     >
       <div className="mb-5 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-200/10 bg-sky-300/[0.08] text-sky-200">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-700">
           <UploadCloud aria-hidden="true" className="h-5 w-5" />
         </span>
         <div>
-          <h2 id="video-upload-title" className="text-sm font-semibold text-white">
+          <h2 id="video-upload-title" className="text-sm font-semibold text-slate-900">
             Upload road footage
           </h2>
-          <p className="mt-1 text-xs leading-5 text-slate-400">
+          <p className="mt-1 text-xs leading-5 text-slate-600">
             MP4, MOV, AVI, or MKV · up to {MAX_UPLOAD_SIZE_LABEL}
           </p>
         </div>
@@ -99,8 +99,8 @@ export function VideoUpload({
       <div
         className={`rounded-xl border border-dashed px-4 py-6 text-center transition ${
           isDragging
-            ? "border-sky-300/70 bg-sky-300/[0.06]"
-            : "border-slate-700 bg-[#09121f]/70 hover:border-slate-500"
+            ? "border-blue-300 bg-blue-50"
+            : "border-slate-700 bg-slate-50 hover:border-slate-500"
         }`}
         onDragEnter={(event) => {
           event.preventDefault();
@@ -124,8 +124,8 @@ export function VideoUpload({
         />
         {selectedFile ? (
           <div className="flex flex-col items-center">
-            <FileVideo2 aria-hidden="true" className="h-7 w-7 text-sky-200" />
-            <p className="mt-3 max-w-full truncate text-sm font-medium text-slate-200">
+            <FileVideo2 aria-hidden="true" className="h-7 w-7 text-blue-700" />
+            <p className="mt-3 max-w-full truncate text-sm font-medium text-slate-700">
               {selectedFile.name}
             </p>
             <p className="mt-1 text-xs text-slate-500">
@@ -133,7 +133,7 @@ export function VideoUpload({
             </p>
             {!isUploading && (
               <button
-                className="mt-2 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-200"
+                className="mt-2 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700"
                 onClick={() => setSelectedFile(null)}
                 type="button"
               >
@@ -148,10 +148,10 @@ export function VideoUpload({
               aria-hidden="true"
               className="mx-auto h-7 w-7 text-slate-500"
             />
-            <p className="mt-3 text-sm text-slate-300">
+            <p className="mt-3 text-sm text-slate-600">
               Drop a video here or{" "}
               <button
-                className="font-medium text-sky-200 underline decoration-sky-200/30 underline-offset-4 hover:text-white"
+                className="font-medium text-blue-700 underline decoration-sky-200/30 underline-offset-4 hover:text-slate-900"
                 disabled={isUploading}
                 onClick={() => inputRef.current?.click()}
                 type="button"
@@ -168,7 +168,7 @@ export function VideoUpload({
 
       {isUploading && (
         <div className="mt-4" aria-live="polite">
-          <div className="flex justify-between text-xs text-slate-400">
+          <div className="flex justify-between text-xs text-slate-600">
             <span>Uploading video</span>
             <span>{progress === null ? "Sending…" : `${progress}%`}</span>
           </div>
@@ -189,12 +189,12 @@ export function VideoUpload({
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg border border-rose-300/15 bg-rose-300/[0.06] px-3 py-2.5 text-sm text-rose-200" role="alert">
+        <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700" role="alert">
           {error}
         </p>
       )}
       {success && (
-        <p className="mt-4 inline-flex items-center gap-2 text-sm text-emerald-200" role="status">
+        <p className="mt-4 inline-flex items-center gap-2 text-sm text-emerald-800" role="status">
           <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
           {success}
         </p>

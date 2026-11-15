@@ -9,8 +9,10 @@ from app.config import settings
 from app.database import SessionLocal
 from app.models.analysis_job import AnalysisJob
 from app.models.video import Video
+from app.services.detection.accident_classifier import AccidentClassifierError
 from app.services.detection.frames import VideoProcessingError
 from app.services.detection.pipeline import AnalysisCancelled, analyze_video
+from app.services.detection.yolo import DetectionModelError
 from app.services.video_storage import VideoStorageError, get_stored_video_path
 
 
@@ -123,6 +125,28 @@ def _process_job(job_id: UUID) -> None:
         _finish_job(job_id, "cancelled")
     except (VideoProcessingError, VideoStorageError) as exc:
         logger.warning("Video analysis job %s could not process its source.", job_id)
+        _finish_job(
+            job_id,
+            "failed",
+            error_message=str(exc)[:500],
+        )
+    except DetectionModelError as exc:
+        logger.warning(
+            "Video analysis job %s failed in detector setup or inference: %s",
+            job_id,
+            exc,
+        )
+        _finish_job(
+            job_id,
+            "failed",
+            error_message=str(exc)[:500],
+        )
+    except AccidentClassifierError as exc:
+        logger.warning(
+            "Video analysis job %s failed in accident-classifier setup or inference: %s",
+            job_id,
+            exc,
+        )
         _finish_job(
             job_id,
             "failed",

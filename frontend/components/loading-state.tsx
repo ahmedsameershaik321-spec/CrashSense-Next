@@ -2,7 +2,7 @@ import { LoaderCircle } from "lucide-react";
 
 export function LoadingState({ label }: { label: string }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas px-6 text-slate-300">
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-6 text-slate-600">
       <div
         className="flex items-center gap-3 rounded-xl border border-line bg-panel px-5 py-4 shadow-panel"
         role="status"

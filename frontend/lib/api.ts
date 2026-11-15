@@ -137,6 +137,34 @@ export interface AnalysisSummary {
   device: string;
   frame_interval_seconds: number;
   notice: string;
+  processing_seconds?: number;
+  processing_fps?: number | null;
+  accident_classification?: AccidentClassification;
+}
+
+export interface AccidentClassification {
+  label: "ACCIDENT" | "NORMAL" | "UNKNOWN";
+  model_status: "not_configured" | "loaded_unvalidated";
+  model: string | null;
+  device: string;
+  frames_sampled: number;
+  windows_evaluated: number;
+  partial_window_frames: number;
+  inference_seconds: number;
+  max_accident_score: number | null;
+  thresholds: {
+    normal: number;
+    accident: number;
+  };
+  evidence_windows: Array<{
+    start_timestamp_seconds: number;
+    end_timestamp_seconds: number;
+    accident_score: number;
+  }>;
+  human_review_required: boolean;
+  confidence: null;
+  reason_code: string;
+  reason: string;
 }
 
 export interface AccidentCandidate {
@@ -152,6 +180,22 @@ export interface AccidentCandidate {
   evidence_references: string[];
   interaction_observations: number;
   motion_events: number;
+  event_state?: "suspected" | "needs_review";
+  accident_category?:
+    | "VEHICLE_TO_VEHICLE"
+    | "VEHICLE_TO_OBJECT"
+    | "ROLLOVER"
+    | "MULTI_VEHICLE"
+    | "PEDESTRIAN_RELATED"
+    | "OTHER"
+    | "UNKNOWN";
+  classification_confidence?: number | null;
+  classification_reasoning?: string;
+  severity?: "LOW" | "MODERATE" | "HIGH" | "CRITICAL" | "UNKNOWN";
+  severity_confidence?: number | null;
+  severity_reasoning_factors?: string[];
+  severity_missing_information?: string[];
+  human_review_required?: boolean;
 }
 
 export interface EvidenceObject {
@@ -403,6 +447,16 @@ function isAccidentCandidate(value: unknown): value is AccidentCandidate {
   if (!isRecord(value)) {
     return false;
   }
+  const accidentCategories = [
+    "VEHICLE_TO_VEHICLE",
+    "VEHICLE_TO_OBJECT",
+    "ROLLOVER",
+    "MULTI_VEHICLE",
+    "PEDESTRIAN_RELATED",
+    "OTHER",
+    "UNKNOWN",
+  ];
+  const severityLevels = ["LOW", "MODERATE", "HIGH", "CRITICAL", "UNKNOWN"];
   return (
     typeof value.candidate_id === "string" &&
     isFiniteNumber(value.start_timestamp_seconds) &&
@@ -421,7 +475,34 @@ function isAccidentCandidate(value: unknown): value is AccidentCandidate {
     typeof value.evidence_summary === "string" &&
     isStringArray(value.evidence_references) &&
     isNonNegativeInteger(value.interaction_observations) &&
-    isNonNegativeInteger(value.motion_events)
+    isNonNegativeInteger(value.motion_events) &&
+    (value.event_state === undefined ||
+      value.event_state === "suspected" ||
+      value.event_state === "needs_review") &&
+    (value.accident_category === undefined ||
+      (typeof value.accident_category === "string" &&
+        accidentCategories.includes(value.accident_category))) &&
+    (value.classification_confidence === undefined ||
+      value.classification_confidence === null ||
+      (isFiniteNumber(value.classification_confidence) &&
+        value.classification_confidence >= 0 &&
+        value.classification_confidence <= 1)) &&
+    (value.classification_reasoning === undefined ||
+      typeof value.classification_reasoning === "string") &&
+    (value.severity === undefined ||
+      (typeof value.severity === "string" &&
+        severityLevels.includes(value.severity))) &&
+    (value.severity_confidence === undefined ||
+      value.severity_confidence === null ||
+      (isFiniteNumber(value.severity_confidence) &&
+        value.severity_confidence >= 0 &&
+        value.severity_confidence <= 1)) &&
+    (value.severity_reasoning_factors === undefined ||
+      isStringArray(value.severity_reasoning_factors)) &&
+    (value.severity_missing_information === undefined ||
+      isStringArray(value.severity_missing_information)) &&
+    (value.human_review_required === undefined ||
+      typeof value.human_review_required === "boolean")
   );
 }
 
@@ -480,7 +561,63 @@ function isAnalysisSummary(value: unknown): value is AnalysisSummary {
     typeof value.device === "string" &&
     isFiniteNumber(value.frame_interval_seconds) &&
     value.frame_interval_seconds > 0 &&
-    typeof value.notice === "string"
+    typeof value.notice === "string" &&
+    (value.processing_seconds === undefined ||
+      (isFiniteNumber(value.processing_seconds) &&
+        value.processing_seconds >= 0)) &&
+    (value.processing_fps === undefined ||
+      value.processing_fps === null ||
+      (isFiniteNumber(value.processing_fps) && value.processing_fps >= 0)) &&
+    (value.accident_classification === undefined ||
+      isAccidentClassification(value.accident_classification))
+  );
+}
+
+function isAccidentClassification(
+  value: unknown,
+): value is AccidentClassification {
+  if (!isRecord(value) || !isRecord(value.thresholds)) {
+    return false;
+  }
+  return (
+    (value.label === "ACCIDENT" ||
+      value.label === "NORMAL" ||
+      value.label === "UNKNOWN") &&
+    (value.model_status === "not_configured" ||
+      value.model_status === "loaded_unvalidated") &&
+    (value.model === null || typeof value.model === "string") &&
+    typeof value.device === "string" &&
+    isNonNegativeInteger(value.frames_sampled) &&
+    isNonNegativeInteger(value.windows_evaluated) &&
+    isNonNegativeInteger(value.partial_window_frames) &&
+    isFiniteNumber(value.inference_seconds) &&
+    value.inference_seconds >= 0 &&
+    (value.max_accident_score === null ||
+      (isFiniteNumber(value.max_accident_score) &&
+        value.max_accident_score >= 0 &&
+        value.max_accident_score <= 1)) &&
+    isFiniteNumber(value.thresholds.normal) &&
+    value.thresholds.normal >= 0 &&
+    value.thresholds.normal < 1 &&
+    isFiniteNumber(value.thresholds.accident) &&
+    value.thresholds.accident > value.thresholds.normal &&
+    value.thresholds.accident <= 1 &&
+    Array.isArray(value.evidence_windows) &&
+    value.evidence_windows.every(
+      (window) =>
+        isRecord(window) &&
+        isFiniteNumber(window.start_timestamp_seconds) &&
+        window.start_timestamp_seconds >= 0 &&
+        isFiniteNumber(window.end_timestamp_seconds) &&
+        window.end_timestamp_seconds >= window.start_timestamp_seconds &&
+        isFiniteNumber(window.accident_score) &&
+        window.accident_score >= 0 &&
+        window.accident_score <= 1,
+    ) &&
+    value.human_review_required === true &&
+    value.confidence === null &&
+    typeof value.reason_code === "string" &&
+    typeof value.reason === "string"
   );
 }
 

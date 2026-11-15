@@ -103,27 +103,27 @@ export function AlertAuditPanel({
       className="rounded-xl border border-line bg-panel p-4 sm:p-5"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-200/10 bg-amber-200/[0.04] text-amber-100">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
           <BellRing aria-hidden="true" className="h-4 w-4" />
         </span>
         <div>
-          <h2 className="text-sm font-semibold text-white" id="alert-audit-title">
+          <h2 className="text-sm font-semibold text-slate-900" id="alert-audit-title">
             Notification audit
           </h2>
-          <p className="mt-1 text-xs leading-5 text-slate-400">
+          <p className="mt-1 text-xs leading-5 text-slate-600">
             Audit-only mode. CrashSense does not send an alert or contact an
             emergency service.
           </p>
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-amber-200/10 bg-amber-200/[0.04] p-3">
-        <p className="flex items-start gap-2 text-xs leading-5 text-amber-100">
+      <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <p className="flex items-start gap-2 text-xs leading-5 text-amber-800">
           <ShieldAlert aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
           Recording an audit entry only records that an operator reviewed this
           candidate. Delivery status will remain “Not sent”.
         </p>
-        <label className="mt-3 flex items-start gap-2 text-xs text-slate-300">
+        <label className="mt-3 flex items-start gap-2 text-xs text-slate-600">
           <input
             checked={acknowledged}
             className="mt-0.5 accent-sky-400"
@@ -133,7 +133,7 @@ export function AlertAuditPanel({
           I understand this action will not send or deliver a notification.
         </label>
         <button
-          className="mt-3 rounded-lg border border-amber-200/15 px-3 py-2 text-xs font-medium text-amber-100 hover:bg-amber-200/[0.05] disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-3 rounded-lg border border-amber-200 px-3 py-2 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={!acknowledged || saving}
           onClick={() => void recordAuditOnlyAction()}
           type="button"
@@ -143,13 +143,13 @@ export function AlertAuditPanel({
       </div>
 
       {error && (
-        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-rose-200" role="alert">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs text-rose-700" role="alert">
           <span className="flex items-center gap-2">
             <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
             {error}
           </span>
           <button
-            className="shrink-0 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-200"
+            className="shrink-0 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-700"
             onClick={() => void loadRecords()}
             type="button"
           >
@@ -160,7 +160,7 @@ export function AlertAuditPanel({
 
       <div aria-live="polite" className="mt-4 space-y-2">
         {loading ? (
-          <p className="flex items-center gap-2 text-xs text-slate-400" role="status">
+          <p className="flex items-center gap-2 text-xs text-slate-600" role="status">
             <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
             Loading notification audit history…
           </p>
@@ -169,14 +169,14 @@ export function AlertAuditPanel({
         ) : (
           records.map((record) => (
             <article
-              className="rounded-lg border border-line bg-[#09121f]/70 p-3"
+              className="rounded-lg border border-line bg-slate-50 p-3"
               key={record.id}
             >
-              <p className="flex items-center gap-2 text-xs font-semibold text-slate-100">
-                <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-amber-200" />
+              <p className="flex items-center gap-2 text-xs font-semibold text-slate-900">
+                <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-amber-800" />
                 Not sent
               </p>
-              <p className="mt-1 text-[11px] leading-5 text-slate-400">
+              <p className="mt-1 text-[11px] leading-5 text-slate-600">
                 {record.delivery_result}
               </p>
               <time

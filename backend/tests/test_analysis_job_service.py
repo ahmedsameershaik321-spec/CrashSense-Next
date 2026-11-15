@@ -8,7 +8,9 @@ from app.models.analysis_job import AnalysisJob
 from app.models.user import User
 from app.models.video import Video
 from app.services import analysis_jobs
+from app.services.detection.accident_classifier import AccidentClassifierError
 from app.services.detection.pipeline import AnalysisCancelled
+from app.services.detection.yolo import DetectionModelError
 
 
 class FakeScalars:
@@ -200,6 +202,47 @@ def test_inference_failure_transitions_job_to_failed(
         )
         assert "private inference detail" not in job.error_message
     assert "private inference detail" in caplog.text
+
+
+def test_detector_failure_message_is_persisted(
+    tmp_path,
+    monkeypatch,
+):
+    storage_dir = tmp_path / "videos"
+    storage_dir.mkdir()
+    monkeypatch.setattr(settings, "video_storage_dir", str(storage_dir))
+    job_id = create_processing_job(storage_dir)
+    error_message = "Could not load configured YOLO weights: missing.pt."
+
+    def fail_inference(*args, **kwargs):
+        raise DetectionModelError(error_message)
+
+    monkeypatch.setattr(analysis_jobs, "analyze_video", fail_inference)
+    analysis_jobs._process_job(job_id)
+
+    with SessionLocal() as db:
+        job = db.get(AnalysisJob, job_id)
+        assert job.status == "failed"
+        assert job.error_message == error_message
+
+
+def test_classifier_failure_message_is_persisted(tmp_path, monkeypatch):
+    storage_dir = tmp_path / "videos"
+    storage_dir.mkdir()
+    monkeypatch.setattr(settings, "video_storage_dir", str(storage_dir))
+    job_id = create_processing_job(storage_dir)
+    error_message = "Configured classifier checkpoint is incompatible."
+
+    def fail_inference(*args, **kwargs):
+        raise AccidentClassifierError(error_message)
+
+    monkeypatch.setattr(analysis_jobs, "analyze_video", fail_inference)
+    analysis_jobs._process_job(job_id)
+
+    with SessionLocal() as db:
+        job = db.get(AnalysisJob, job_id)
+        assert job.status == "failed"
+        assert job.error_message == error_message
 
 
 def test_processing_job_honors_cancellation_request(

@@ -70,7 +70,26 @@ const analysisResults = {
     model: "yolov8n.pt",
     device: "cuda:0",
     frame_interval_seconds: 1,
+    processing_seconds: 0.1,
+    processing_fps: null,
     notice: "Heuristic visual evidence only.",
+    accident_classification: {
+      label: "UNKNOWN" as const,
+      model_status: "not_configured" as const,
+      model: null,
+      device: "cpu",
+      frames_sampled: 0,
+      windows_evaluated: 0,
+      partial_window_frames: 0,
+      inference_seconds: 0,
+      max_accident_score: null,
+      thresholds: { normal: 0.1, accident: 0.9 },
+      evidence_windows: [],
+      human_review_required: true,
+      confidence: null,
+      reason_code: "weights_not_configured",
+      reason: "No trained accident-classifier checkpoint is configured.",
+    },
   },
   candidates: [
     {
@@ -86,6 +105,15 @@ const analysisResults = {
       evidence_references: ["frame:12@1.200s"],
       interaction_observations: 3,
       motion_events: 1,
+      event_state: "needs_review",
+      accident_category: "UNKNOWN",
+      classification_confidence: null,
+      classification_reasoning: "Object detection does not establish an accident.",
+      severity: "UNKNOWN",
+      severity_confidence: null,
+      severity_reasoning_factors: ["No validated impact evidence is available."],
+      severity_missing_information: ["Validated collision or impact evidence."],
+      human_review_required: true,
     },
   ],
   frames: [analysisFrame],
@@ -368,6 +396,46 @@ describe("video API client", () => {
     );
     await expect(
       getAnalysisFrames("secret-token", analysisJob.id),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("rejects malformed candidate assessment fields", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          ...analysisResults,
+          candidates: [
+            { ...analysisResults.candidates[0], severity: "SEVERE" },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(
+      getAnalysisResults("secret-token", analysisJob.id),
+    ).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it("rejects unsupported accident classifier labels", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          ...analysisResults,
+          summary: {
+            ...analysisResults.summary,
+            accident_classification: {
+              ...analysisResults.summary.accident_classification,
+              label: "CONFIRMED",
+            },
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(
+      getAnalysisResults("secret-token", analysisJob.id),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });

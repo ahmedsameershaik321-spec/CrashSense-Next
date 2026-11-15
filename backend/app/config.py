@@ -17,12 +17,30 @@ class Settings(BaseSettings):
     cors_allowed_origins: list[str] = Field(default_factory=list)
     detection_model_weights: str = Field(default="yolov8n.pt", min_length=1)
     detection_device: str = "auto"
+    accident_classifier_weights: str | None = None
+    accident_classifier_frame_interval_seconds: float = Field(
+        default=0.1,
+        gt=0,
+        le=1,
+    )
+    accident_classifier_normal_threshold: float | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
+    accident_classifier_accident_threshold: float | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
     detection_confidence_threshold: float = Field(default=0.25, ge=0, le=1)
     detection_iou_threshold: float = Field(default=0.45, ge=0, le=1)
+    detection_image_size: int = Field(default=640, ge=32, le=2048)
     detection_frame_interval_seconds: float = Field(default=1.0, gt=0)
     detection_max_frame_dimension: int = Field(default=1280, gt=0)
     detection_min_candidate_observations: int = Field(default=2, ge=1)
     detection_min_verified_observations: int = Field(default=4, ge=1)
+    detection_min_verified_duration_seconds: float = Field(default=2.0, gt=0)
     detection_min_motion_events: int = Field(default=2, ge=1)
     detection_interaction_distance_ratio: float = Field(default=0.08, gt=0, le=1)
     detection_min_speed_pixels_per_second: float = Field(default=12.0, gt=0)
@@ -54,6 +72,31 @@ class Settings(BaseSettings):
             ("replace_with_", "change_me", "your_secret")
         ):
             raise ValueError("Replace the example credential with a unique secret.")
+        return value
+
+    @field_validator("accident_classifier_weights", mode="before")
+    @classmethod
+    def normalize_optional_classifier_weights(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+    @field_validator(
+        "accident_classifier_normal_threshold",
+        "accident_classifier_accident_threshold",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_classifier_thresholds(
+        cls,
+        value: float | str | None,
+    ) -> float | str | None:
+        if isinstance(value, str):
+            return value.strip() or None
         return value
 
     @field_validator("cors_allowed_origins")
@@ -88,6 +131,15 @@ class Settings(BaseSettings):
             raise ValueError("DEBUG must be false in production.")
         if self.environment.lower() == "production" and len(self.database_password) < 16:
             raise ValueError("Production database passwords must be at least 16 characters.")
+        if (
+            self.accident_classifier_normal_threshold is not None
+            and self.accident_classifier_accident_threshold is not None
+            and self.accident_classifier_normal_threshold
+            >= self.accident_classifier_accident_threshold
+        ):
+            raise ValueError(
+                "The classifier normal threshold must be lower than its accident threshold."
+            )
         return self
 
     model_config = SettingsConfigDict(

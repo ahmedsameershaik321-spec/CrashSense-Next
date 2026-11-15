@@ -9,20 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: "#080e18",
-        panel: "#0d1624",
-        surface: "#111d2d",
-        line: "#1d2b3d",
-        muted: "#8392a7",
-        accent: "#48a9ff",
-        "accent-strong": "#1687e8",
+        canvas: "#f8fafc",
+        panel: "#ffffff",
+        surface: "#f1f5f9",
+        line: "#e2e8f0",
+        muted: "#64748b",
+        accent: "#2563eb",
+        "accent-strong": "#1d4ed8",
       },
       boxShadow: {
-        panel: "0 20px 60px rgba(0, 0, 0, 0.24)",
+        panel: "0 1px 3px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.05)",
       },
       backgroundImage: {
         "auth-glow":
-          "radial-gradient(ellipse at 18% 0%, rgba(32, 111, 187, .22), transparent 46%), radial-gradient(ellipse at 90% 100%, rgba(21, 79, 132, .15), transparent 42%)",
+          "radial-gradient(ellipse at 18% 0%, rgba(37, 99, 235, .06), transparent 46%), radial-gradient(ellipse at 90% 100%, rgba(14, 116, 144, .04), transparent 42%)",
       },
     },
   },

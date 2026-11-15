@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass, field
 
 from app.config import settings
+from app.services.detection.assessment import build_review_assessment
 from app.services.detection.tracking import TrackedObject
 
 
@@ -453,12 +454,31 @@ class AccidentCandidateDetector:
             ):
                 continue
 
+            has_deceleration = any(
+                anomaly == "sudden_deceleration"
+                for _, _, anomaly in interaction.motion_event_keys
+            )
+            if not has_deceleration and not interaction.post_anomaly_response:
+                continue
+            if (
+                interaction.motion_event_track_ids
+                and interaction.motion_event_track_ids.issubset(
+                    interaction.resolved_post_anomaly_track_ids
+                )
+                and not interaction.post_anomaly_response
+            ):
+                continue
+
             has_response = self._has_temporal_response(interaction)
             verified = (
                 has_response
                 and interaction.observations
                 >= settings.detection_min_verified_observations
                 and interaction.motion_events >= settings.detection_min_motion_events
+                and (
+                    interaction.last_timestamp - interaction.first_timestamp
+                    >= settings.detection_min_verified_duration_seconds
+                )
             )
             persistence_score = min(interaction.observations / 6, 1.0)
             motion_score = min(interaction.motion_events / 4, 1.0)
@@ -516,4 +536,17 @@ class AccidentCandidateDetector:
                 }
             )
 
-        return self._group_overlapping_candidates(candidates)
+        grouped_candidates = self._group_overlapping_candidates(candidates)
+        for candidate in grouped_candidates:
+            event_state = (
+                "needs_review"
+                if candidate["verification_status"] == "verified_detection"
+                else "suspected"
+            )
+            candidate.update(
+                build_review_assessment(
+                    candidate["object_labels"],
+                    event_state,
+                )
+            )
+        return grouped_candidates

@@ -75,6 +75,12 @@ Status: Operator and administrator workflows implemented; deployment configurati
 - [ ] Build analytics interface.
 - [x] Integrate implemented frontend workflows with backend APIs.
 
+The current review UI operates on analysis candidates and sampled evidence. It
+does not complete incident management: the backend has no server-side incident
+records, confirmation/rejection workflow, incident-specific coordinates, or
+incident analytics endpoints. Keep those items pending rather than presenting
+candidate detections as confirmed incidents.
+
 ## PHASE 5 — VIDEO MANAGEMENT
 
 - [x] Camera registration.
@@ -89,16 +95,31 @@ Status: Operator and administrator workflows implemented; deployment configurati
 
 ## PHASE 6 — COMPUTER VISION
 
-- [ ] Dataset research.
-- [ ] Dataset preparation.
+- [x] Dataset research (CCD facts verified; video-use permission unresolved).
+- [x] Dataset preparation utility (manifest validation and source-grouped splits; no dataset data used).
 - [x] YOLO model selection.
 - [ ] Model training or fine-tuning.
+- [x] Separate temporal accident-classifier interface (checkpoint remains unavailable).
+- [x] Authorization-gated training and held-out evaluation workflow.
 - [x] Vehicle detection.
 - [x] Object tracking.
 - [x] Accident candidate detection.
 - [x] Temporal verification.
 - [ ] False-positive evaluation.
 - [ ] Model evaluation.
+
+The bundled `accident-test.mp4` and `normal-traffic.mp4` clips do not have
+ground-truth annotations. Quantitative detection and severity evaluation
+therefore remains pending; mocked unit tests are not a substitute for labeled
+video evaluation.
+
+CCD is documented in `DETECTION_PIPELINE.md`. Its code repository has an MIT
+license, but no video-use terms; do not download or train until written
+permission is obtained. The preparation utility and synthetic tests are
+implemented, but no CCD files were accessed. Classifier training and
+labeled-data evaluation remain pending. The runtime classifier is opt-in and
+reports `UNKNOWN` when no trained checkpoint is configured; it is not
+production-validated.
 
 ## PHASE 7 — SEVERITY ESTIMATION
 
@@ -138,7 +159,7 @@ Status: Operator and administrator workflows implemented; deployment configurati
 - [ ] ML evaluation tests.
 - [ ] End-to-end tests.
 - [ ] Security review.
-- [ ] Performance testing.
+- [x] Performance testing (sample-video runtime measured; labeled ML evaluation remains pending).
 - [x] Docker Compose deployment configuration with PostgreSQL and persistent volumes.
 - [x] Production startup and configuration documentation.
 

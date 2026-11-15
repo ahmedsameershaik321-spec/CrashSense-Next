@@ -69,8 +69,10 @@ function formatTimestamp(seconds: number): string {
 }
 
 function candidateStatus(candidate: AccidentCandidate): string {
-  return candidate.verification_status === "verified_detection"
-    ? "Verified detection"
+  return candidate.human_review_required ||
+    candidate.event_state === "needs_review" ||
+    candidate.verification_status === "verified_detection"
+    ? "Needs human review"
     : "Suspected";
 }
 
@@ -186,6 +188,7 @@ export function AnalysisResultsView({
       (candidate) => candidate.candidate_id === selectedCandidateId,
     ) ?? null;
   const selectedFrame = frames[selectedFrameIndex] ?? null;
+  const accidentClassification = results?.summary.accident_classification;
 
   const loadFramePage = useCallback(
     async (offset: number, candidate: AccidentCandidate) => {
@@ -284,13 +287,13 @@ export function AnalysisResultsView({
   if (error) {
     return (
       <section
-        className="rounded-xl border border-rose-300/15 bg-rose-300/[0.05] p-6"
+        className="rounded-xl border border-rose-200 bg-rose-50 p-6"
         role="alert"
       >
-        <h1 className="text-lg font-semibold text-white">Results unavailable</h1>
-        <p className="mt-2 text-sm text-rose-200">{error}</p>
+        <h1 className="text-lg font-semibold text-slate-900">Results unavailable</h1>
+        <p className="mt-2 text-sm text-rose-700">{error}</p>
         <button
-          className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-200 hover:bg-white/[0.04]"
+          className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
           onClick={() => void loadResults()}
           type="button"
         >
@@ -312,30 +315,30 @@ export function AnalysisResultsView({
         <section className="rounded-xl border border-line bg-panel p-6">
           <div className="flex items-center gap-3">
             {job.status === "failed" ? (
-              <AlertCircle aria-hidden="true" className="h-5 w-5 text-rose-200" />
+              <AlertCircle aria-hidden="true" className="h-5 w-5 text-rose-700" />
             ) : (
-              <Clock3 aria-hidden="true" className="h-5 w-5 text-amber-200" />
+              <Clock3 aria-hidden="true" className="h-5 w-5 text-amber-800" />
             )}
             <div>
-              <h1 className="text-lg font-semibold text-white">
+              <h1 className="text-lg font-semibold text-slate-900">
                 {job.status === "failed"
                   ? "Analysis failed"
                   : job.status === "cancelled"
                     ? "Analysis cancelled"
                     : "Analysis is not complete"}
               </h1>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Current status: <span className="capitalize">{job.status}</span>
                 {(job.status === "queued" || job.status === "processing") &&
                   ` · ${job.progress}% reported by the backend`}
               </p>
               {job.error_message && (
-                <p className="mt-2 text-sm text-rose-200">{job.error_message}</p>
+                <p className="mt-2 text-sm text-rose-700">{job.error_message}</p>
               )}
             </div>
           </div>
           <button
-            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-200 hover:bg-white/[0.04]"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line px-3.5 py-2.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
             onClick={() => void loadResults()}
             type="button"
           >
@@ -358,21 +361,21 @@ export function AnalysisResultsView({
     : "";
 
   return (
-    <div className="animate-fade-in space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <PageBackLink />
-          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-200">
-            Incident review
+          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
+            Candidate review
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             Analysis results
           </h1>
           <p className="mt-2 break-all font-mono text-xs text-slate-500">
             Job {job.id}
           </p>
         </div>
-        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/10 bg-emerald-300/[0.06] px-3 py-1.5 text-xs font-medium text-emerald-200">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
           <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
           Completed
         </span>
@@ -383,11 +386,11 @@ export function AnalysisResultsView({
         className="flex flex-col gap-3 rounded-xl border border-line bg-panel p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
       >
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-sky-200/10 bg-sky-300/[0.06] text-sky-200">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-700">
             <FileVideo2 aria-hidden="true" className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-white">
+            <h2 className="truncate text-sm font-semibold text-slate-900">
               {video?.original_filename ?? "Video record unavailable"}
             </h2>
             <p className="mt-1 break-all font-mono text-[10px] text-slate-500">
@@ -397,7 +400,7 @@ export function AnalysisResultsView({
         </div>
         {video && (
           <Link
-            className="inline-flex w-fit items-center gap-2 text-xs font-medium text-sky-200 hover:text-white"
+            className="inline-flex w-fit items-center gap-2 text-xs font-medium text-blue-700 hover:text-slate-900"
             href={`/dashboard/videos/${encodeURIComponent(video.id)}`}
           >
             <Video aria-hidden="true" className="h-4 w-4" />
@@ -419,7 +422,7 @@ export function AnalysisResultsView({
           value={summary.detections_processed.toLocaleString()}
         />
         <SummaryCard
-          label="Accident candidates"
+          label="Review candidates"
           value={summary.candidate_count.toLocaleString()}
         />
       </section>
@@ -440,7 +443,7 @@ export function AnalysisResultsView({
       )}
 
       <section className="rounded-xl border border-line bg-panel p-4 sm:p-5">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-600">
           Processing details
         </h2>
         <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-3">
@@ -450,8 +453,58 @@ export function AnalysisResultsView({
             label="Sampling interval"
             value={`${summary.frame_interval_seconds}s`}
           />
+          <Metadata
+            label="Processing time"
+            value={
+              summary.processing_seconds === undefined
+                ? "Not reported"
+                : `${summary.processing_seconds.toFixed(3)}s`
+            }
+          />
+          <Metadata
+            label="Detection throughput"
+            value={
+              summary.processing_fps == null
+                ? "Not reported"
+                : `${summary.processing_fps.toFixed(2)} frames/s`
+            }
+          />
+          <Metadata
+            label="Accident classification"
+            value={accidentClassification?.label ?? "Not reported"}
+          />
+          <Metadata
+            label="Classifier status"
+            value={
+              accidentClassification?.model_status === "not_configured"
+                ? "Not configured"
+                : accidentClassification?.model_status === "loaded_unvalidated"
+                  ? "Loaded; unvalidated"
+                  : "Not reported"
+            }
+          />
+          <Metadata
+            label="Classifier sampled frames"
+            value={
+              accidentClassification?.frames_sampled.toLocaleString() ??
+              "Not reported"
+            }
+          />
+          <Metadata
+            label="Max uncalibrated score"
+            value={
+              accidentClassification?.max_accident_score == null
+                ? "Not available"
+                : accidentClassification.max_accident_score.toFixed(3)
+            }
+          />
         </dl>
-        <p className="mt-4 flex gap-2 border-t border-line pt-3 text-[11px] leading-5 text-amber-100/80">
+        {accidentClassification && (
+          <p className="mt-3 text-xs leading-5 text-slate-600">
+            {accidentClassification.reason}
+          </p>
+        )}
+        <p className="mt-4 flex gap-2 border-t border-line pt-3 text-[11px] leading-5 text-amber-800">
           <ShieldAlert aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
           {summary.notice}
         </p>
@@ -465,7 +518,7 @@ export function AnalysisResultsView({
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold text-slate-900"
                 id="candidate-list-title"
               >
                 Candidate review
@@ -474,14 +527,14 @@ export function AnalysisResultsView({
                 Ordered by first observed timestamp
               </p>
             </div>
-            <span className="rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-400">
+            <span className="rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-600">
               {orderedCandidates.length}
             </span>
           </div>
 
           {orderedCandidates.length === 0 ? (
-            <div className="mt-5 rounded-lg border border-line bg-[#09121f]/70 p-4">
-              <p className="text-sm font-medium text-slate-200">
+            <div className="mt-5 rounded-lg border border-line bg-slate-50 p-4">
+              <p className="text-sm font-medium text-slate-700">
                 No candidates were returned
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
@@ -500,8 +553,8 @@ export function AnalysisResultsView({
                       aria-current={selected ? "true" : undefined}
                       className={`w-full rounded-lg border p-3 text-left transition ${
                         selected
-                          ? "border-sky-300/20 bg-sky-300/[0.06]"
-                          : "border-line bg-[#09121f]/60 hover:border-slate-600"
+                          ? "border-blue-200 bg-blue-50"
+                          : "border-line bg-slate-50 hover:border-slate-600"
                       }`}
                       onClick={() =>
                         setSelectedCandidateId(candidate.candidate_id)
@@ -510,7 +563,7 @@ export function AnalysisResultsView({
                     >
                       <span className="flex items-start justify-between gap-3">
                         <span className="min-w-0">
-                          <span className="block text-xs font-semibold text-white">
+                          <span className="block text-xs font-semibold text-slate-900">
                             Candidate {index + 1}
                           </span>
                           <span className="mt-1 block font-mono text-[10px] text-slate-500">
@@ -521,7 +574,7 @@ export function AnalysisResultsView({
                         </span>
                         <CandidateStatus candidate={candidate} />
                       </span>
-                      <span className="mt-2 block truncate text-[10px] text-slate-400">
+                      <span className="mt-2 block truncate text-[10px] text-slate-600">
                         Tracks {candidate.involved_track_ids.join(", ") || "not supplied"}
                       </span>
                     </button>
@@ -569,7 +622,7 @@ export function AnalysisResultsView({
                 aria-hidden="true"
                 className="mx-auto h-6 w-6 text-slate-600"
               />
-              <p className="mt-3 text-sm text-slate-300">
+              <p className="mt-3 text-sm text-slate-600">
                 Select a candidate to inspect evidence
               </p>
             </div>
@@ -583,7 +636,7 @@ export function AnalysisResultsView({
 function PageBackLink() {
   return (
     <Link
-      className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 transition hover:text-white"
+      className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 transition hover:text-slate-900"
       href="/dashboard/analysis"
     >
       <ArrowLeft aria-hidden="true" className="h-4 w-4" />
@@ -598,7 +651,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-white">
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
         {value}
       </p>
     </article>
@@ -611,19 +664,22 @@ function Metadata({ label, value }: { label: string; value: string }) {
       <dt className="text-[10px] uppercase tracking-wider text-slate-600">
         {label}
       </dt>
-      <dd className="mt-1 break-words text-slate-300">{value}</dd>
+      <dd className="mt-1 break-words text-slate-600">{value}</dd>
     </div>
   );
 }
 
 function CandidateStatus({ candidate }: { candidate: AccidentCandidate }) {
-  const verified = candidate.verification_status === "verified_detection";
+  const requiresReview =
+    candidate.human_review_required ||
+    candidate.event_state === "needs_review" ||
+    candidate.verification_status === "verified_detection";
   return (
     <span
       className={`shrink-0 rounded-full border px-2 py-1 text-[9px] font-medium ${
-        verified
-          ? "border-amber-200/10 bg-amber-300/[0.06] text-amber-200"
-          : "border-sky-200/10 bg-sky-300/[0.06] text-sky-200"
+        requiresReview
+          ? "border-amber-200 bg-amber-50 text-amber-800"
+          : "border-blue-200 bg-blue-50 text-blue-700"
       }`}
     >
       {candidateStatus(candidate)}
@@ -673,7 +729,9 @@ function CandidateEvidence({
   onPlaybackError: (message: string) => void;
 }) {
   const selectedIndex = frame ? frames.indexOf(frame) : -1;
-  const verified = candidate.verification_status === "verified_detection";
+  const pipelineReviewFlagged =
+    candidate.event_state === "needs_review" ||
+    candidate.verification_status === "verified_detection";
 
   return (
     <article
@@ -683,32 +741,94 @@ function CandidateEvidence({
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-semibold text-white">Candidate evidence</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Candidate evidence</h2>
             <CandidateStatus candidate={candidate} />
           </div>
           <p className="mt-1 break-all font-mono text-[10px] text-slate-500">
             {candidate.candidate_id}
           </p>
         </div>
-        <span className="shrink-0 text-xs font-medium text-slate-300">
+        <span className="shrink-0 text-xs font-medium text-slate-600">
           {formatTimestamp(candidate.start_timestamp_seconds)}
           {" – "}
           {formatTimestamp(candidate.end_timestamp_seconds)}
         </span>
       </div>
 
-      <p className="mt-4 rounded-lg border border-line bg-[#09121f]/70 p-3 text-xs leading-5 text-slate-300">
+      <p className="mt-4 rounded-lg border border-line bg-slate-50 p-3 text-xs leading-5 text-slate-600">
         {candidate.evidence_summary}
       </p>
       <p className="mt-2 text-[10px] leading-4 text-slate-500">
-        {verified
-          ? "This is the backend pipeline's verified_detection classification, not a human confirmation or a medical assessment."
-          : "Suspected candidates require operator review and are not confirmed accidents."}
+        {candidate.human_review_required || pipelineReviewFlagged
+          ? "The pipeline has flagged this candidate for human review. No human confirmation or medical assessment is recorded."
+          : "This is a pipeline candidate only. It is not a confirmed accident or a medical assessment."}
       </p>
 
-      <dl className="mt-4 grid gap-3 rounded-lg border border-line bg-[#09121f]/50 p-3 text-xs sm:grid-cols-2">
+      <section
+        aria-label="Automated assessment"
+        className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold text-slate-900">
+            Automated assessment
+          </h3>
+          <span className="rounded-full border border-amber-200 bg-white px-2 py-1 text-[10px] font-medium text-amber-800">
+            {candidateStatus(candidate)}
+          </span>
+        </div>
+        <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-2">
+          <Metadata
+            label="Accident category"
+            value={candidate.accident_category ?? "Unknown"}
+          />
+          <Metadata label="Severity" value={candidate.severity ?? "Unknown"} />
+          <Metadata
+            label="Category confidence"
+            value={
+              candidate.classification_confidence == null
+                ? "Not available"
+                : `${candidate.classification_confidence.toFixed(3)} · uncalibrated`
+            }
+          />
+          <Metadata
+            label="Severity confidence"
+            value={
+              candidate.severity_confidence == null
+                ? "Not available"
+                : `${candidate.severity_confidence.toFixed(3)} · uncalibrated`
+            }
+          />
+        </dl>
+        <p className="mt-3 text-xs leading-5 text-slate-700">
+          {candidate.classification_reasoning ??
+            "The backend did not provide category reasoning for this candidate."}
+        </p>
+        {candidate.severity_reasoning_factors &&
+          candidate.severity_reasoning_factors.length > 0 && (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-700">
+              {candidate.severity_reasoning_factors.map((factor, index) => (
+                <li key={`${factor}-${index}`}>{factor}</li>
+              ))}
+            </ul>
+          )}
+        {candidate.severity_missing_information &&
+          candidate.severity_missing_information.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold text-slate-800">
+                Information still needed
+              </p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 text-xs leading-5 text-slate-700">
+                {candidate.severity_missing_information.map((item, index) => (
+                  <li key={`${item}-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+      </section>
+
+      <dl className="mt-4 grid gap-3 rounded-lg border border-line bg-slate-50 p-3 text-xs sm:grid-cols-2">
         <Metadata
-          label="Heuristic confidence score"
+          label="Heuristic evidence score"
           value={`${candidate.confidence_score.toFixed(3)} · ${candidate.confidence_type}`}
         />
         <Metadata
@@ -726,8 +846,8 @@ function CandidateEvidence({
       </dl>
 
       {candidate.evidence_references.length > 0 && (
-        <details className="mt-3 rounded-lg border border-line bg-[#09121f]/50 px-3 py-2">
-          <summary className="cursor-pointer text-[11px] font-medium text-slate-300">
+        <details className="mt-3 rounded-lg border border-line bg-slate-50 px-3 py-2">
+          <summary className="cursor-pointer text-[11px] font-medium text-slate-600">
             Backend evidence references ({candidate.evidence_references.length})
           </summary>
           <ul className="mt-2 space-y-1">
@@ -746,7 +866,7 @@ function CandidateEvidence({
       <div className="mt-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-semibold text-white">Evidence frames</h3>
+            <h3 className="text-xs font-semibold text-slate-900">Evidence frames</h3>
             <p className="mt-1 text-[10px] text-slate-500">
               The API provides sampled detections, not still-image files. The
               protected video player seeks to the selected frame timestamp.
@@ -755,7 +875,7 @@ function CandidateEvidence({
           <div className="flex items-center gap-2">
             <button
               aria-label="Previous evidence frame"
-              className="rounded-md border border-line p-2 text-slate-300 hover:bg-white/[0.04] disabled:opacity-40"
+              className="rounded-md border border-line p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               disabled={framesLoading || selectedIndex <= 0}
               onClick={onPreviousFrame}
               type="button"
@@ -764,7 +884,7 @@ function CandidateEvidence({
             </button>
             <button
               aria-label="Next evidence frame"
-              className="rounded-md border border-line p-2 text-slate-300 hover:bg-white/[0.04] disabled:opacity-40"
+              className="rounded-md border border-line p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               disabled={
                 framesLoading ||
                 selectedIndex < 0 ||
@@ -779,19 +899,19 @@ function CandidateEvidence({
         </div>
 
         {framesLoading && (
-          <p className="mt-3 flex items-center gap-2 text-xs text-slate-400" role="status">
+          <p className="mt-3 flex items-center gap-2 text-xs text-slate-600" role="status">
             <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
             Loading sampled frame evidence
           </p>
         )}
         {frameError && (
           <div
-            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-300/15 bg-rose-300/[0.05] p-3"
+            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3"
             role="alert"
           >
-            <span className="text-xs text-rose-200">{frameError}</span>
+            <span className="text-xs text-rose-700">{frameError}</span>
             <button
-              className="text-xs font-medium text-white underline underline-offset-2"
+              className="text-xs font-medium text-slate-900 underline underline-offset-2"
               onClick={onRetryEvidence}
               type="button"
             >
@@ -800,15 +920,15 @@ function CandidateEvidence({
           </div>
         )}
         {!framesLoading && !frameError && !frame && (
-          <p className="mt-3 rounded-lg border border-line bg-[#09121f]/60 p-3 text-xs text-slate-400">
+          <p className="mt-3 rounded-lg border border-line bg-slate-50 p-3 text-xs text-slate-600">
             No sampled frame evidence was returned for this candidate.
           </p>
         )}
 
         {frame && !framesLoading && (
           <div className="mt-3 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-[#09121f]/60 p-3">
-              <p className="text-xs font-medium text-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-slate-50 p-3">
+              <p className="text-xs font-medium text-slate-700">
                 Frame {frame.frame_index} · {formatTimestamp(frame.timestamp_seconds)}
               </p>
               <p className="text-[10px] text-slate-500">
@@ -839,7 +959,7 @@ function CandidateEvidence({
               </video>
             ) : (
               <div
-                className="rounded-lg border border-amber-200/10 bg-amber-300/[0.04] p-3 text-xs text-amber-100"
+                className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
                 role="status"
               >
                 {playbackError || "Preparing protected video playback."}
@@ -847,7 +967,7 @@ function CandidateEvidence({
             )}
             {playbackError && streamReady && (
               <p
-                className="rounded-lg border border-rose-300/15 bg-rose-300/[0.05] p-3 text-xs text-rose-200"
+                className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
                 role="alert"
               >
                 {playbackError}
@@ -855,18 +975,18 @@ function CandidateEvidence({
             )}
 
             {frame.objects.length === 0 ? (
-              <p className="rounded-lg border border-line bg-[#09121f]/60 p-3 text-xs text-slate-500">
+              <p className="rounded-lg border border-line bg-slate-50 p-3 text-xs text-slate-500">
                 No tracked objects were returned for this sampled frame.
               </p>
             ) : (
               <ul aria-label="Objects detected in selected frame" className="space-y-2">
                 {frame.objects.map((object, index) => (
                   <li
-                    className="flex flex-col gap-2 rounded-lg border border-line bg-[#09121f]/60 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-2 rounded-lg border border-line bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between"
                     key={`${object.track_id ?? "untracked"}-${index}`}
                   >
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-                      <span className="font-semibold capitalize text-slate-100">
+                      <span className="font-semibold capitalize text-slate-900">
                         {object.label}
                       </span>
                       <span className="font-mono text-[10px] text-slate-500">
@@ -879,7 +999,7 @@ function CandidateEvidence({
                         Box [{object.bbox.map((coordinate) => coordinate.toFixed(0)).join(", ")}]
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400">
+                    <div className="text-[10px] text-slate-600">
                       {object.motion_anomaly
                         ? `Motion: ${object.motion_anomaly}`
                         : `State: ${object.motion_state}`}
@@ -899,7 +1019,7 @@ function CandidateEvidence({
               </p>
               <div className="flex gap-2">
                 <button
-                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-300 hover:bg-white/[0.04] disabled:opacity-40"
+                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-600 hover:bg-slate-50 disabled:opacity-40"
                   disabled={framesLoading || frameOffset <= 0}
                   onClick={onPreviousPage}
                   type="button"
@@ -907,7 +1027,7 @@ function CandidateEvidence({
                   Previous frames
                 </button>
                 <button
-                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-300 hover:bg-white/[0.04] disabled:opacity-40"
+                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-600 hover:bg-slate-50 disabled:opacity-40"
                   disabled={
                     framesLoading ||
                     frameOffset + FRAME_PAGE_SIZE >= totalFrames

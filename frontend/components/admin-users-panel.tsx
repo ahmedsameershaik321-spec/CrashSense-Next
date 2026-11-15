@@ -178,23 +178,23 @@ export function AdminUsersPanel({
   const hasNextPage = users.length === PAGE_SIZE;
 
   return (
-    <div className="animate-fade-in">
+    <div className="">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-200">
+          <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
             <ShieldCheck aria-hidden="true" className="h-4 w-4" />
             Administrator
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             User management
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
             Review registrations, grant approved operational roles, and suspend
             or reactivate existing accounts. Changes are enforced by the API.
           </p>
         </div>
         <button
-          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-200 hover:bg-white/[0.04] disabled:opacity-50"
+          className="inline-flex w-fit items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           disabled={loading}
           onClick={() => setReloadVersion((current) => current + 1)}
           type="button"
@@ -206,7 +206,7 @@ export function AdminUsersPanel({
 
       {notice && (
         <p
-          className="mt-5 rounded-lg border border-emerald-200/10 bg-emerald-300/[0.05] px-3 py-2.5 text-xs text-emerald-200"
+          className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800"
           role="status"
         >
           {notice}
@@ -214,15 +214,15 @@ export function AdminUsersPanel({
       )}
       {error && (
         <div
-          className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-300/15 bg-rose-300/[0.04] px-3 py-2.5"
+          className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5"
           role="alert"
         >
-          <p className="flex items-center gap-2 text-xs text-rose-200">
+          <p className="flex items-center gap-2 text-xs text-rose-700">
             <AlertCircle aria-hidden="true" className="h-4 w-4 shrink-0" />
             {error}
           </p>
           <button
-            className="rounded-md border border-line px-3 py-1.5 text-xs text-slate-200"
+            className="rounded-md border border-line px-3 py-1.5 text-xs text-slate-700"
             onClick={() => setReloadVersion((current) => current + 1)}
             type="button"
           >
@@ -237,26 +237,26 @@ export function AdminUsersPanel({
       >
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-4 sm:px-5">
           <div>
-            <h2 className="text-sm font-semibold text-white">Registered accounts</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Registered accounts</h2>
             <p className="mt-1 text-[11px] text-slate-500">
               Showing records {users.length ? offset + 1 : 0}–
               {offset + users.length}
             </p>
           </div>
-          <span className="rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-400">
+          <span className="rounded-full border border-line px-2.5 py-1 text-[10px] text-slate-600">
             {users.length} on this page
           </span>
         </div>
 
         {loading ? (
-          <div className="flex min-h-48 items-center justify-center gap-2 text-xs text-slate-400" role="status">
+          <div className="flex min-h-48 items-center justify-center gap-2 text-xs text-slate-600" role="status">
             <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
             Loading registered accounts…
           </div>
         ) : !error && users.length === 0 ? (
           <div className="p-8 text-center">
             <UserRoundCog aria-hidden="true" className="mx-auto h-7 w-7 text-slate-600" />
-            <p className="mt-3 text-sm font-medium text-slate-200">
+            <p className="mt-3 text-sm font-medium text-slate-700">
               No accounts on this page
             </p>
             <p className="mt-1 text-xs text-slate-500">
@@ -268,7 +268,7 @@ export function AdminUsersPanel({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] text-left text-xs">
-              <thead className="bg-[#09121f]/70 text-[10px] uppercase tracking-wider text-slate-500">
+              <thead className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-5 py-3 font-medium">Account</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -284,10 +284,10 @@ export function AdminUsersPanel({
                   return (
                     <tr key={user.id}>
                       <td className="px-5 py-4">
-                        <p className="font-medium text-slate-100">
+                        <p className="font-medium text-slate-900">
                           {[user.first_name, user.last_name].filter(Boolean).join(" ")}
                           {user.id === currentUserId && (
-                            <span className="ml-2 text-[10px] text-sky-300">(you)</span>
+                            <span className="ml-2 text-[10px] text-blue-700">(you)</span>
                           )}
                         </p>
                         <p className="mt-1 text-[11px] text-slate-500">{user.email}</p>
@@ -299,10 +299,10 @@ export function AdminUsersPanel({
                         <span
                           className={`rounded-full border px-2.5 py-1 text-[10px] ${
                             isPending
-                              ? "border-amber-200/10 bg-amber-200/[0.04] text-amber-100"
+                              ? "border-amber-200 bg-amber-50 text-amber-800"
                               : user.is_active
-                                ? "border-emerald-200/10 bg-emerald-300/[0.04] text-emerald-200"
-                                : "border-rose-200/10 bg-rose-300/[0.04] text-rose-200"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                : "border-rose-200 bg-rose-50 text-rose-700"
                           }`}
                         >
                           {statusLabel(user)}
@@ -316,7 +316,7 @@ export function AdminUsersPanel({
                         ) : null}
                         <select
                           aria-label={`Role for ${user.email}`}
-                          className="rounded-md border border-line bg-[#09121f] px-2 py-1.5 text-[11px] capitalize text-slate-200 disabled:opacity-60"
+                          className="rounded-md border border-line bg-white px-2 py-1.5 text-[11px] capitalize text-slate-700 disabled:opacity-60"
                           disabled={isBusy || (!isPending && user.id === currentUserId)}
                           id={`role-${user.id}`}
                           onChange={(event) =>
@@ -339,18 +339,18 @@ export function AdminUsersPanel({
                           <option value="administrator">Administrator</option>
                         </select>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-slate-400">
+                      <td className="whitespace-nowrap px-4 py-4 text-slate-600">
                         {formatDate(user.created_at)}
                       </td>
                       <td className="px-5 py-4">
                         {isBusy ? (
-                          <span className="inline-flex items-center gap-2 text-[10px] text-slate-400" role="status">
+                          <span className="inline-flex items-center gap-2 text-[10px] text-slate-600" role="status">
                             <LoaderCircle aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
                             Saving
                           </span>
                         ) : isPending ? (
                           <button
-                            className="inline-flex items-center gap-1.5 rounded-md border border-sky-200/15 bg-sky-300/[0.05] px-2.5 py-1.5 text-[10px] font-medium text-sky-100 hover:bg-sky-300/[0.1]"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[10px] font-medium text-blue-700 hover:bg-blue-100"
                             onClick={() => void approve(user)}
                             type="button"
                           >
@@ -362,7 +362,7 @@ export function AdminUsersPanel({
                             {user.role !== (roles[user.id] ?? user.role) &&
                               user.id !== currentUserId && (
                                 <button
-                                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-200 hover:bg-white/[0.04]"
+                                  className="rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-700 hover:bg-slate-50"
                                   onClick={() => void changeRole(user)}
                                   type="button"
                                 >
@@ -373,8 +373,8 @@ export function AdminUsersPanel({
                               <button
                                 className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-[10px] ${
                                   user.is_active
-                                    ? "border-rose-200/10 text-rose-200 hover:bg-rose-300/[0.05]"
-                                    : "border-emerald-200/10 text-emerald-200 hover:bg-emerald-300/[0.05]"
+                                    ? "border-rose-200 text-rose-700 hover:bg-rose-50"
+                                    : "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
                                 }`}
                                 onClick={() => void changeStatus(user)}
                                 type="button"
@@ -403,7 +403,7 @@ export function AdminUsersPanel({
           <div className="flex gap-2">
             <button
               aria-label="Previous user page"
-              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-300 disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-600 disabled:opacity-40"
               disabled={loading || offset === 0}
               onClick={() => setOffset((current) => Math.max(0, current - PAGE_SIZE))}
               type="button"
@@ -413,7 +413,7 @@ export function AdminUsersPanel({
             </button>
             <button
               aria-label="Next user page"
-              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-300 disabled:opacity-40"
+              className="inline-flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-slate-600 disabled:opacity-40"
               disabled={loading || !hasNextPage}
               onClick={() => setOffset((current) => current + PAGE_SIZE)}
               type="button"

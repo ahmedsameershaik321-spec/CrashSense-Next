@@ -47,14 +47,14 @@ export function RegistrationForm() {
 
   if (registration) {
     return (
-      <div className="rounded-xl border border-emerald-300/15 bg-emerald-300/[0.06] p-5">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-300/10 text-emerald-300">
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-800">
           <CheckCircle2 aria-hidden="true" className="h-5 w-5" />
         </span>
-        <h3 className="mt-4 text-base font-semibold text-white">
+        <h3 className="mt-4 text-base font-semibold text-slate-900">
           Request received
         </h3>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
+        <p className="mt-2 text-sm leading-6 text-slate-600">
           {registration.message}
         </p>
         <p className="mt-3 text-xs leading-5 text-slate-500">
@@ -130,7 +130,7 @@ export function RegistrationForm() {
         type="password"
         value={confirmation}
       />
-      <div className="flex gap-2 rounded-lg border border-line bg-white/[0.02] p-3 text-xs leading-5 text-slate-400">
+      <div className="flex gap-2 rounded-lg border border-line bg-slate-50 p-3 text-xs leading-5 text-slate-600">
         <ShieldCheck
           aria-hidden="true"
           className="mt-0.5 h-4 w-4 shrink-0 text-accent"
@@ -141,7 +141,7 @@ export function RegistrationForm() {
       {error && (
         <p
           aria-live="polite"
-          className="rounded-lg border border-rose-400/20 bg-rose-400/[0.07] px-3.5 py-3 text-sm text-rose-200"
+          className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-700"
           role="alert"
         >
           {error}

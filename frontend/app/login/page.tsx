@@ -19,7 +19,7 @@ export default function LoginPage() {
           <>
             New to CrashSense?{" "}
             <Link
-              className="font-medium text-sky-300 transition hover:text-sky-200"
+              className="font-medium text-blue-700 transition hover:text-blue-700"
               href="/register"
             >
               Create an account

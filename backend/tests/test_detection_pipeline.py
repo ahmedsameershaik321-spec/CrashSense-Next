@@ -4,6 +4,7 @@ from types import ModuleType, SimpleNamespace
 import pytest
 
 from app.config import settings
+from app.schemas.analysis import AccidentCandidateResponse
 from app.services.detection import yolo
 from app.services.detection.accidents import AccidentCandidateDetector
 from app.services.detection.frames import VideoProcessingError, iter_video_frames
@@ -171,6 +172,14 @@ def test_yolo_model_is_loaded_once_and_tracker_receives_configuration(
 
     class FakeModel:
         predictor = None
+        names = {
+            0: "person",
+            1: "bicycle",
+            2: "car",
+            3: "motorcycle",
+            5: "bus",
+            7: "truck",
+        }
 
         def track(self, **kwargs):
             self.track_kwargs = kwargs
@@ -197,6 +206,47 @@ def test_yolo_model_is_loaded_once_and_tracker_receives_configuration(
     assert model.track_kwargs["persist"] is True
     assert model.track_kwargs["classes"] == [0, 1, 2, 3, 5, 7]
     assert model.track_kwargs["device"] == "cpu"
+    assert model.track_kwargs["imgsz"] == settings.detection_image_size
+
+
+def test_model_class_mapping_uses_supported_names_and_rejects_unknown_classes():
+    assert YOLODetector._road_class_labels(
+        {4: "truck", 9: "person", 10: "animal"}
+    ) == {4: "truck", 9: "person"}
+
+    with pytest.raises(DetectionModelError, match="no supported COCO"):
+        YOLODetector._road_class_labels({0: "vehicle"})
+
+
+def test_yolo_inference_uses_model_class_ids_and_mapping(monkeypatch):
+    class FakeModel:
+        names = {4: "truck"}
+
+        def track(self, **kwargs):
+            self.track_kwargs = kwargs
+            return [
+                SimpleNamespace(
+                    boxes=SimpleNamespace(
+                        xyxy=[[1, 2, 30, 40]],
+                        conf=[0.95],
+                        cls=[4],
+                        id=[31],
+                    )
+                )
+            ]
+
+    model = FakeModel()
+    detector = YOLODetector.__new__(YOLODetector)
+    detector.device = "cpu"
+    detector.model = model
+    detector.class_labels = detector._road_class_labels(model.names)
+    monkeypatch.setattr(settings, "detection_image_size", 512)
+
+    detections = detector.detect(FakeFrame())
+
+    assert model.track_kwargs["classes"] == [4]
+    assert model.track_kwargs["imgsz"] == 512
+    assert detections[0].label == "truck"
 
 
 def test_yolo_detection_output_is_normalized_to_road_classes():
@@ -392,9 +442,50 @@ def test_temporal_interaction_and_motion_produce_reviewable_candidate(
 
     assert len(candidates) == 1
     assert candidates[0]["verification_status"] == "verified_detection"
+    assert candidates[0]["event_state"] == "needs_review"
+    assert candidates[0]["accident_category"] == "UNKNOWN"
+    assert candidates[0]["classification_confidence"] is None
+    assert candidates[0]["severity"] == "UNKNOWN"
+    assert candidates[0]["severity_confidence"] is None
+    assert candidates[0]["human_review_required"] is True
+    response = AccidentCandidateResponse.model_validate(candidates[0])
+    assert response.event_state == "needs_review"
+    assert response.accident_category == "UNKNOWN"
+    assert response.severity == "UNKNOWN"
     assert candidates[0]["confidence_type"] == "heuristic_temporal_evidence_score"
     assert "not confirmation" in candidates[0]["evidence_summary"]
     assert candidates[0]["evidence_references"]
+
+
+def test_short_temporal_window_cannot_be_marked_needs_review(monkeypatch):
+    monkeypatch.setattr(settings, "detection_min_candidate_observations", 2)
+    monkeypatch.setattr(settings, "detection_min_verified_observations", 4)
+    monkeypatch.setattr(settings, "detection_min_motion_events", 2)
+    monkeypatch.setattr(settings, "detection_min_verified_duration_seconds", 2.0)
+    detector = AccidentCandidateDetector()
+
+    for frame_index, timestamp in enumerate((0.0, 0.2, 0.4, 0.6)):
+        objects = [
+            make_tracked(
+                1,
+                (0, 0, 20, 20),
+                "sudden_deceleration" if frame_index in (1, 2) else None,
+                post_behavior="stopping" if frame_index == 3 else None,
+            ),
+            make_tracked(2, (10, 10, 30, 30), label="motorcycle"),
+        ]
+        detector.observe(
+            objects,
+            timestamp,
+            100,
+            100,
+            frame_index,
+        )
+
+    candidate = detector.candidates()[0]
+
+    assert candidate["verification_status"] == "suspected"
+    assert candidate["event_state"] == "suspected"
 
 
 def test_single_anomaly_remains_a_suspected_candidate(monkeypatch):
@@ -965,8 +1056,92 @@ def test_pipeline_persists_sampled_detections_and_progress(monkeypatch, tmp_path
     assert result["summary"]["frames_processed"] == 3
     assert result["summary"]["detections_processed"] == 3
     assert result["summary"]["device"] == "cpu"
+    assert result["summary"]["processing_seconds"] >= 0
+    assert result["summary"]["processing_fps"] is None or (
+        result["summary"]["processing_fps"] > 0
+    )
+    assert result["summary"]["accident_classification"]["label"] == "UNKNOWN"
+    assert (
+        result["summary"]["accident_classification"]["reason_code"]
+        == "weights_not_configured"
+    )
     assert result["frames"][0]["objects"][0]["track_id"] == 1
     assert progress == [16, 50, 82]
+
+
+def test_classifier_uses_finer_sampling_without_changing_yolo_cadence(
+    monkeypatch,
+    tmp_path,
+):
+    class FakeDetector:
+        device = "cpu"
+
+        def __init__(self):
+            self.timestamps = []
+
+        def reset_tracking(self):
+            pass
+
+        def detect(self, frame):
+            self.timestamps.append(frame.timestamp)
+            return []
+
+    class FakeClassifier:
+        enabled = True
+        observations = []
+
+        def __init__(self, weights_path, device, **kwargs):
+            self.__class__.observations = []
+
+        def observe(self, frame, timestamp_seconds):
+            self.observations.append(timestamp_seconds)
+
+        def result(self):
+            return {"label": "UNKNOWN", "model_status": "loaded_unvalidated"}
+
+    detector = FakeDetector()
+    frames = [
+        SimpleNamespace(
+            frame_index=index,
+            timestamp_seconds=index / 10,
+            frame_count=21,
+            frame=SimpleNamespace(shape=(100, 200, 3), timestamp=index / 10),
+        )
+        for index in range(21)
+    ]
+    monkeypatch.setattr(settings, "accident_classifier_weights", "synthetic.pth")
+    monkeypatch.setattr(settings, "accident_classifier_frame_interval_seconds", 0.1)
+    monkeypatch.setattr(
+        "app.services.detection.pipeline.YOLODetector",
+        lambda: detector,
+    )
+    monkeypatch.setattr(
+        "app.services.detection.pipeline.AccidentClassifier",
+        FakeClassifier,
+    )
+    intervals = []
+
+    def frames_at_interval(*args, **kwargs):
+        intervals.append(kwargs["interval_seconds"])
+        return iter(frames)
+
+    monkeypatch.setattr(
+        "app.services.detection.pipeline.iter_video_frames",
+        frames_at_interval,
+    )
+
+    result = analyze_video(
+        tmp_path / "source.mp4",
+        progress_callback=lambda value: None,
+        cancellation_requested=lambda: False,
+    )
+
+    assert intervals == [0.1]
+    assert len(FakeClassifier.observations) == 21
+    assert detector.timestamps == [0.0, 1.0, 2.0]
+    assert result["summary"]["accident_classification"]["model_status"] == (
+        "loaded_unvalidated"
+    )
 
 
 def test_pipeline_honors_cancellation_between_frames(monkeypatch, tmp_path):

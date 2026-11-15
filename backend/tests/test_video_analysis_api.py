@@ -74,13 +74,20 @@ def create_test_video(user_id, storage_dir):
         return video.id
 
 
-def create_analysis_job(video_id, requested_by, status="queued", result=None):
+def create_analysis_job(
+    video_id,
+    requested_by,
+    status="queued",
+    result=None,
+    error_message=None,
+):
     job = AnalysisJob(
         video_id=video_id,
         requested_by=requested_by,
         status=status,
         progress=100 if status == "completed" else 0,
         result=result,
+        error_message=error_message,
     )
     with SessionLocal() as db:
         db.add(job)
@@ -227,6 +234,27 @@ def test_analysis_results_are_not_available_before_completion(video_storage):
     )
 
     assert response.status_code == 409
+
+
+def test_failed_analysis_status_includes_error_message(video_storage):
+    user_id = create_test_user()
+    video_id = create_test_video(user_id, video_storage)
+    error_message = "Could not load configured YOLO weights: missing.pt."
+    job_id = create_analysis_job(
+        video_id,
+        user_id,
+        status="failed",
+        error_message=error_message,
+    )
+
+    response = client.get(
+        f"/api/v1/videos/analysis/{job_id}",
+        headers=auth_headers(user_id),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    assert response.json()["error_message"] == error_message
 
 
 def test_start_analysis_for_missing_video_returns_404(video_storage):
