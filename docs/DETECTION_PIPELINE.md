@@ -20,25 +20,30 @@ For CUDA, install the matching `torch` and `torchvision` packages using the
 official PyTorch installation selector for the host's CUDA and Python versions,
 then install the backend requirements. Do not mix incompatible CUDA builds.
 
-The default weights setting is `yolov8n.pt`. Ultralytics downloads those weights
-on first model initialization if they are not in its cache and network access is
-available. For offline deployments, provision the weights file and set
+The default road-user detector is [Ultralytics YOLO26n](https://docs.ultralytics.com/models/yolo26/), a pretrained COCO
+object-detection checkpoint. Ultralytics downloads it on first model
+initialization if it is not in its cache and network access is available. For
+offline deployments, provision the weights file and set
 `DETECTION_MODEL_WEIGHTS` to its path. Missing packages, unavailable weights,
 or model-load errors fail the analysis job; the pipeline never returns
 substitute or simulated detections.
-The repository checkpoint metadata identifies `yolov8n.pt` as a COCO object
-detector with person, bicycle, car, motorcycle, bus, and truck classes. It is
-not an accident classifier. At startup, the detector selects road-user classes
-from the configured model's own class names and rejects a model with no
-supported classes rather than silently applying COCO class IDs to another
-model.
+YOLO26n is a newer general-purpose detector for people, bicycles, cars,
+motorcycles, buses, and trucks. It does not recognize crashes as a class.
+Changing from YOLOv8n to YOLO26n updates the general object-detector baseline,
+but this has not been evaluated as an accident-classification improvement.
+At startup, the detector
+selects road-user classes from the configured model's own class names and
+rejects a model with no supported classes rather than silently applying COCO
+class IDs to another model. Existing deployments that set
+`DETECTION_MODEL_WEIGHTS=yolov8n.pt` continue using that configured checkpoint;
+change the environment value to `yolo26n.pt` to use the new default.
 The `lap` dependency used by Ultralytics' ByteTrack implementation is installed
 explicitly from `requirements.txt` to avoid runtime package auto-installation.
 
 Configure `.env` or the process environment:
 
 ```dotenv
-DETECTION_MODEL_WEIGHTS=yolov8n.pt
+DETECTION_MODEL_WEIGHTS=yolo26n.pt
 DETECTION_DEVICE=auto
 ACCIDENT_CLASSIFIER_WEIGHTS=
 ACCIDENT_CLASSIFIER_FRAME_INTERVAL_SECONDS=0.1
@@ -151,7 +156,7 @@ the protected video stream for playback.
 
 ## Candidate interpretation
 
-YOLOv8 uses COCO classes for people, bicycles, cars, motorcycles, buses, and
+YOLO26n uses COCO classes for people, bicycles, cars, motorcycles, buses, and
 trucks. Ultralytics ByteTrack supplies persistent IDs during a video's
 processing run. Candidate detection uses repeated close interactions together
 with abrupt deceleration or direction-change observations; bounding-box overlap
@@ -187,6 +192,26 @@ claims. The unit suite uses deterministic mocked detections; actual video
 inference must be evaluated against independently labeled footage before
 production use. Sudden braking, congestion, camera motion, occlusion, and
 brief events between sampled frames remain known sources of uncertainty.
+
+## Model choice and accident-specific weights
+
+Current YOLO weights provide road-user detections and tracking, not a trained
+accident/no-accident decision. The compatible temporal accident classifier
+remains disabled until a checkpoint trained and validated on authorized
+video is configured. Its result stays `UNKNOWN` without that checkpoint.
+
+The [CVPR 2026 AUTOPILOT ACCIDENT challenge winner](https://arxiv.org/abs/2605.29325) is a multi-stage [Qwen3-VL pipeline](https://github.com/fuumin621/cvpr2026-accident-1st-place-solution). It is a useful research reference for CCTV event
+timing, localization, and collision type, but its reported 32B and 235B model
+variants require high-end GPU hardware and are not a lightweight drop-in for
+this CPU-capable service. The TUM Traffic Accid3nD work combines 3D roadside
+perception, multiple cameras/radar, trajectory rules, and an accident YOLOv8
+detector; its dataset is CC BY-NC-SA 4.0 and its input setup differs from a
+single uploaded video ([project](https://tum-traffic-dataset.github.io/tumtraf-a/), [paper](https://arxiv.org/abs/2508.14567)). Neither should be treated as an interchangeable generic
+checkpoint. Prefer the YOLO26n COCO detector for vehicle tracking here, and
+keep accident classification unconfirmed until an appropriate checkpoint is
+licensed, integrated, and measured on held-out representative footage.
+
+For a smaller checkpoint to investigate, the [Team404 VideoMAE-S system](https://github.com/Pac1FF1zM/Traffic_Checker) publishes trained weights and reports 84.55% AUROC on a held-out DADA-2000 dashcam split. That is not a CCTV accuracy claim: the view domain differs, and its repository flags DADA's usage terms as unclear/research-only. Do not integrate or redistribute those weights until their usage rights are confirmed and a held-out evaluation matches the target camera domain.
 
 ## CCD dataset status
 

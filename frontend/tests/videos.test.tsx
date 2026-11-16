@@ -258,6 +258,27 @@ describe("video library", () => {
     expect(await screen.findByText("No matching videos")).toBeInTheDocument();
   });
 
+  it("defers per-video analysis history requests until the panel is opened", async () => {
+    mocks.listVideos.mockResolvedValue([video]);
+    mocks.getAnalysisStatus.mockResolvedValue(analysisJob);
+    localStorage.setItem(
+      `crashsense.analysis-history.v1:operator-id:${video.id}`,
+      JSON.stringify([analysisId]),
+    );
+    render(<VideoLibrary accessToken="operator-token" userId="operator-id" />);
+
+    expect(await screen.findByText("north-road.mp4")).toBeInTheDocument();
+    expect(mocks.getAnalysisStatus).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Show analysis controls",
+      }),
+    );
+    expect(await screen.findByText("Recent analysis jobs")).toBeInTheDocument();
+    expect(mocks.getAnalysisStatus).toHaveBeenCalledWith("operator-token", analysisId);
+  });
+
   it("shows protected API errors instead of fabricating an empty library", async () => {
     mocks.listVideos.mockRejectedValue(
       new ApiError("You do not have permission to access this resource.", 403),

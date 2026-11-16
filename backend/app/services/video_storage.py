@@ -1,5 +1,6 @@
 
 import hashlib
+import logging
 import os
 import re
 import uuid
@@ -10,6 +11,8 @@ from fastapi import UploadFile
 
 from app.config import settings
 
+
+logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 
@@ -150,7 +153,13 @@ async def save_video(upload: UploadFile) -> StoredVideo:
         )
 
     except Exception:
-        destination.unlink(missing_ok=True)
+        try:
+            destination.unlink(missing_ok=True)
+        except OSError:
+            logger.exception(
+                "Could not remove partial video upload file %s.",
+                stored_filename,
+            )
         raise
 
     finally:

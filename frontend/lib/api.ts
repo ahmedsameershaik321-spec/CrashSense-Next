@@ -1005,7 +1005,14 @@ export function uploadVideo(
     xhr.addEventListener("load", () => {
       const body = readResponseBody(xhr.responseText);
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new ApiError(readErrorMessage(body), xhr.status));
+        reject(
+          new ApiError(
+            xhr.status >= 500
+              ? "The server could not complete the upload. Please try again."
+              : readErrorMessage(body),
+            xhr.status,
+          ),
+        );
         return;
       }
 

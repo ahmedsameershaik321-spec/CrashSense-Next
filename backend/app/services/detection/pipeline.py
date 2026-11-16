@@ -49,6 +49,7 @@ def analyze_video(
         else detection_interval
     )
     next_detection_time = 0.0
+    last_reported_progress = -1
 
     for frame in iter_video_frames(
         video_path,
@@ -89,11 +90,15 @@ def analyze_video(
         )
 
         if frame.frame_count > 0:
-            progress_callback(
-                min(99, max(1, round(99 * (frame.frame_index + 1) / frame.frame_count)))
+            current_progress = min(
+                99,
+                max(1, round(99 * (frame.frame_index + 1) / frame.frame_count)),
             )
         else:
-            progress_callback(0)
+            current_progress = 0
+        if current_progress != last_reported_progress:
+            progress_callback(current_progress)
+            last_reported_progress = current_progress
 
     if cancellation_requested():
         raise AnalysisCancelled

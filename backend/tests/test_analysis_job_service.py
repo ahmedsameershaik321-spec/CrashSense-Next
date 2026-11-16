@@ -37,6 +37,9 @@ class FakeDatabase:
     def scalars(self, statement):
         return FakeScalars(self.job)
 
+    def get(self, _model, _job_id):
+        return self.job
+
     def commit(self):
         pass
 
@@ -61,6 +64,27 @@ def test_claiming_job_transitions_queued_to_processing(monkeypatch):
     assert job.status == "processing"
     assert isinstance(job.started_at, datetime)
     assert job.started_at.tzinfo == timezone.utc
+
+
+def test_progress_update_skips_redundant_database_commit(monkeypatch):
+    job = AnalysisJob(
+        id=uuid4(),
+        video_id=uuid4(),
+        requested_by=uuid4(),
+        status="processing",
+        progress=40,
+    )
+    database = FakeDatabase(job)
+    commits = []
+    database.commit = lambda: commits.append(job.progress)
+    monkeypatch.setattr(analysis_jobs, "SessionLocal", lambda: database)
+
+    analysis_jobs._update_progress(job.id, 40)
+    assert commits == []
+
+    analysis_jobs._update_progress(job.id, 45)
+    assert job.progress == 45
+    assert commits == [45]
 
 
 def test_stale_processing_job_is_requeued(monkeypatch):

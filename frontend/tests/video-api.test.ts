@@ -256,6 +256,22 @@ describe("video API client", () => {
     });
   });
 
+  it("does not expose server error details for failed uploads", async () => {
+    MockXhr.status = 500;
+    MockXhr.responseBody = { detail: "Database password or SQL details" };
+
+    await expect(
+      uploadVideo(
+        "secret-token",
+        new File(["data"], "sample.mp4"),
+        vi.fn(),
+      ),
+    ).rejects.toMatchObject({
+      status: 500,
+      message: "The server could not complete the upload. Please try again.",
+    });
+  });
+
   it("deletes only through the protected API and preserves active-analysis conflicts", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 204 }));
     await expect(deleteVideo("secret-token", video.id)).resolves.toBeUndefined();

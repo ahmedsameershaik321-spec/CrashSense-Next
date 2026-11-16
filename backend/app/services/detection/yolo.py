@@ -62,7 +62,7 @@ def _load_model(weights: str, device: str) -> Any:
 
 
 class YOLODetector:
-    """Cached YOLOv8 detector with Ultralytics ByteTrack integration."""
+    """Cached Ultralytics road-user detector with ByteTrack integration."""
 
     def __init__(self) -> None:
         device = _resolve_device(settings.detection_device)

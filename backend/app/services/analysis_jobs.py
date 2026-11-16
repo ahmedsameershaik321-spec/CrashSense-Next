@@ -71,7 +71,11 @@ def _is_cancel_requested(job_id: UUID) -> bool:
 def _update_progress(job_id: UUID, progress: int) -> None:
     with SessionLocal() as db:
         job = db.get(AnalysisJob, job_id)
-        if job is not None and job.status == "processing":
+        if (
+            job is not None
+            and job.status == "processing"
+            and progress > job.progress
+        ):
             job.progress = min(99, max(job.progress, progress))
             job.updated_at = datetime.now(timezone.utc)
             db.commit()

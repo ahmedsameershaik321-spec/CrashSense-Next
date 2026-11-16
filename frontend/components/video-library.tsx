@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -45,6 +47,7 @@ export function VideoLibrary({ accessToken, userId }: VideoLibraryProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedAnalysisVideoId, setExpandedAnalysisVideoId] = useState<string | null>(null);
   const requestId = useRef(0);
 
   const loadPage = useCallback(
@@ -266,13 +269,39 @@ export function VideoLibrary({ accessToken, userId }: VideoLibraryProps) {
                   </div>
                 </Link>
                 <div className="border-t border-line p-3">
-                  <VideoAnalysisPanel
-                    accessToken={accessToken}
-                    compact
-                    key={`${userId}:${video.id}`}
-                    userId={userId}
-                    videoId={video.id}
-                  />
+                  <button
+                    aria-controls={`analysis-panel-${video.id}`}
+                    aria-expanded={expandedAnalysisVideoId === video.id}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-1 py-1 text-left text-xs font-medium text-slate-600 transition hover:text-blue-700"
+                    onClick={() =>
+                      setExpandedAnalysisVideoId((current) =>
+                        current === video.id ? null : video.id,
+                      )
+                    }
+                    type="button"
+                  >
+                    <span>
+                      {expandedAnalysisVideoId === video.id
+                        ? "Hide analysis controls"
+                        : "Show analysis controls"}
+                    </span>
+                    {expandedAnalysisVideoId === video.id ? (
+                      <ChevronUp aria-hidden="true" className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown aria-hidden="true" className="h-4 w-4" />
+                    )}
+                  </button>
+                  {expandedAnalysisVideoId === video.id && (
+                    <div id={`analysis-panel-${video.id}`} className="mt-2">
+                      <VideoAnalysisPanel
+                        accessToken={accessToken}
+                        compact
+                        key={`${userId}:${video.id}`}
+                        userId={userId}
+                        videoId={video.id}
+                      />
+                    </div>
+                  )}
                 </div>
               </article>
             ))}

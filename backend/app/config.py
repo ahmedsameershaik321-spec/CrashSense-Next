@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     video_storage_dir: str = "storage/videos"
     max_video_upload_size_mb: int = Field(default=100, gt=0, le=4096)
     cors_allowed_origins: list[str] = Field(default_factory=list)
-    detection_model_weights: str = Field(default="yolov8n.pt", min_length=1)
+    detection_model_weights: str = Field(default="yolo26n.pt", min_length=1)
     detection_device: str = "auto"
     accident_classifier_weights: str | None = None
     accident_classifier_frame_interval_seconds: float = Field(

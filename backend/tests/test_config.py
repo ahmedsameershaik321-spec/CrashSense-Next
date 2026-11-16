@@ -61,6 +61,10 @@ def test_detection_image_size_and_review_duration_are_validated():
     assert configured.detection_min_verified_duration_seconds == 2.5
 
 
+def test_current_default_detector_uses_yolo26_nano():
+    assert settings().detection_model_weights == "yolo26n.pt"
+
+
 def test_accident_classifier_settings_are_optional_and_bounded():
     empty_values = settings(
         accident_classifier_weights="",

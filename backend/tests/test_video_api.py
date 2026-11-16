@@ -1,12 +1,15 @@
 from io import BytesIO
+from types import SimpleNamespace
 from uuid import uuid4
-from app.database import get_db
+
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.v1.endpoints import videos as video_endpoints
 from app.config import settings
 from app.core.security import create_access_token, hash_password
-from app.database import SessionLocal
+from app.database import SessionLocal, get_db
+from app.dependencies.auth import require_operator
 from app.main import app
 from app.models.user import User
 from app.models.video import Video
@@ -219,32 +222,82 @@ def test_oversized_video_is_rejected(video_storage, monkeypatch):
 
     assert response.status_code == 413
     assert list(video_storage.glob("*")) == []
+
+
 def test_database_failure_removes_uploaded_file(
     video_storage,
     monkeypatch,
+    caplog,
 ):
-    user_id = create_test_user(
-        role="monitoring_operator",
-        is_active=True,
-    )
+    user_id = uuid4()
+    rollbacks = []
 
-    def override_get_db():
-        with SessionLocal() as db:
+    with SessionLocal() as db:
 
-            def fail_commit():
-                raise RuntimeError("Simulated database failure")
+        def fail_commit():
+            raise RuntimeError("Simulated database failure")
 
-            monkeypatch.setattr(db, "commit", fail_commit)
+        original_rollback = db.rollback
+
+        def track_rollback():
+            rollbacks.append(len(list(video_storage.glob("*"))))
+            original_rollback()
+
+        monkeypatch.setattr(db, "commit", fail_commit)
+        monkeypatch.setattr(db, "rollback", track_rollback)
+
+        def override_get_db():
             yield db
 
-    app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[require_operator] = lambda: SimpleNamespace(
+            id=user_id
+        )
+        try:
+            response = upload_file(headers=auth_headers(user_id))
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+            app.dependency_overrides.pop(require_operator, None)
 
-    try:
-        with pytest.raises(RuntimeError, match="Simulated database failure"):
-            upload_file(
-                headers=auth_headers(user_id),
-            )
-    finally:
-        app.dependency_overrides.pop(get_db, None)
-
+    assert response.status_code == 500
+    assert response.json()["detail"] == (
+        "The video could not be uploaded. Please try again."
+    )
+    assert "Simulated database failure" in caplog.text
+    assert rollbacks == [0, 1]
     assert list(video_storage.glob("*")) == []
+
+
+def test_unexpected_storage_failure_is_logged_and_generic(
+    monkeypatch,
+    caplog,
+):
+    user_id = uuid4()
+
+    async def fail_storage(_upload):
+        raise OSError("Private storage path is unavailable.")
+
+    monkeypatch.setattr(video_endpoints, "save_video", fail_storage)
+
+    with SessionLocal() as db:
+
+        def override_get_db():
+            yield db
+
+        app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[require_operator] = lambda: SimpleNamespace(
+            id=user_id
+        )
+
+        try:
+            response = upload_file(headers=auth_headers(user_id))
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+            app.dependency_overrides.pop(require_operator, None)
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == (
+        "The video could not be uploaded. Please try again."
+    )
+    assert "Private storage path is unavailable." in caplog.text
+    assert "Private storage path is unavailable." not in response.text

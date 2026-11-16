@@ -68,6 +68,7 @@ Status: Operator and administrator workflows implemented; deployment configurati
 - [x] Integrate frontend authentication with existing backend endpoints.
 - [x] Build protected video library, upload, details, playback, and deletion UI.
 - [x] Report upload success independently from video-library refresh failures.
+- [x] Defer per-video analysis history loading until its controls are opened.
 - [x] Integrate background analysis job submission, status polling, and history reopening.
 - [x] Build analysis result and incident review dashboard with sampled evidence.
 - [x] Add camera-location, nearby-resource, and audit-only alert panels to incident review.
@@ -88,10 +89,12 @@ candidate detections as confirmed incidents.
 - [x] Camera registration.
 - [x] Camera metadata management.
 - [x] Video upload.
+- [x] Release database connections during upload streaming and safely report
+  unexpected failures.
 - [x] Video validation.
 - [x] Video storage.
 - [x] Protected video streaming with HTTP byte-range support.
-- [x] Persistent YOLOv8 accident-analysis pipeline.
+- [x] Persistent YOLO road-user tracking and heuristic accident-candidate pipeline.
 - [ ] Camera monitoring.
 - [x] Video processing pipeline.
 
@@ -100,6 +103,8 @@ candidate detections as confirmed incidents.
 - [x] Dataset research (CCD facts verified; video-use permission unresolved).
 - [x] Dataset preparation utility (manifest validation and source-grouped splits; no dataset data used).
 - [x] YOLO model selection.
+- [x] Upgrade the default road-user detector to pretrained YOLO26n; accident
+  classification remains unvalidated and requires a separate checkpoint.
 - [ ] Model training or fine-tuning.
 - [x] Separate temporal accident-classifier interface (checkpoint remains unavailable).
 - [x] Authorization-gated training and held-out evaluation workflow.

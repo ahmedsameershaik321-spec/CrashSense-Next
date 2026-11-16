@@ -545,6 +545,22 @@ async def upload_video(
 ):
     """Upload and securely store a video for accident analysis."""
 
+    uploaded_by = current_user.id
+
+    try:
+        # Authentication only needs a read; release its connection during file I/O.
+        db.rollback()
+    except Exception as exc:
+        logger.exception(
+            "Could not release the database transaction before video upload "
+            "for user %s.",
+            uploaded_by,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The video could not be uploaded. Please try again.",
+        ) from exc
+
     try:
         stored = await save_video(file)
 
@@ -563,8 +579,15 @@ async def upload_video(
             detail=message,
         ) from exc
 
+    except Exception as exc:
+        logger.exception("Unexpected storage error while uploading a video.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The video could not be uploaded. Please try again.",
+        ) from exc
+
     video = Video(
-        uploaded_by=current_user.id,
+        uploaded_by=uploaded_by,
         original_filename=(file.filename or "uploaded-video")[:255],
         stored_filename=stored.stored_filename,
         storage_key=stored.storage_key,
@@ -578,19 +601,46 @@ async def upload_video(
         db.add(video)
         db.commit()
 
-    except Exception:
-        db.rollback()
+    except Exception as exc:
+        logger.exception(
+            "Could not commit video upload record for user %s.",
+            uploaded_by,
+        )
 
-        # Remove the stored file if its database record was not committed.
+        try:
+            db.rollback()
+        except Exception:
+            logger.exception(
+                "Could not roll back failed video upload record for user %s.",
+                uploaded_by,
+            )
+
         try:
             delete_stored_video(stored.storage_key)
         except Exception:
-            # Preserve the original database exception.
-            pass
+            logger.exception(
+                "Could not remove video file after failed database commit "
+                "for user %s.",
+                uploaded_by,
+            )
 
-        raise
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The video could not be uploaded. Please try again.",
+        ) from exc
 
-    db.refresh(video)
+    try:
+        db.refresh(video)
+    except Exception as exc:
+        logger.exception(
+            "Could not refresh committed video upload record %s.",
+            video.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The video could not be uploaded. Please try again.",
+        ) from exc
+
     return video
 
 
