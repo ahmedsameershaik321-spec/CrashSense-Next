@@ -54,6 +54,9 @@ Stop services without deleting persistent data:
 docker compose down
 ```
 
+For hosted production deployment, see
+[Vercel and Render deployment](docs/DEPLOYMENT_VERCEL_RENDER.md).
+
 Do not use `docker compose down -v` unless you intend to delete the database,
 uploaded videos, and model cache.
 

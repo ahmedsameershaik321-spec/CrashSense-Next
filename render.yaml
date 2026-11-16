@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: crashsense-api
+    runtime: docker
+    plan: 1c-2g
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/v1/health
+    preDeployCommand: alembic upgrade head
+    numInstances: 1
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: APP_NAME
+        value: CrashSense API
+      - key: API_V1_PREFIX
+        value: /api/v1
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crashsense-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: VIDEO_STORAGE_DIR
+        value: /app/storage/videos
+      - key: YOLO_CONFIG_DIR
+        value: /app/storage/model-cache
+      - key: DETECTION_MODEL_WEIGHTS
+        value: yolo26n.pt
+      - key: DETECTION_DEVICE
+        value: cpu
+      - key: MAX_VIDEO_UPLOAD_SIZE_MB
+        value: "100"
+      - key: INITIAL_ADMIN_EMAIL
+        sync: false
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
+      - key: INITIAL_ADMIN_FIRST_NAME
+        value: System
+      - key: INITIAL_ADMIN_LAST_NAME
+        value: Administrator
+    disk:
+      name: crashsense-data
+      mountPath: /app/storage
+      sizeGB: 20
+
+databases:
+  - name: crashsense-db
+    databaseName: crashsense
+    user: crashsense_app
+    plan: 0.1c-256mb
+    postgresMajorVersion: "16"
+    diskSizeGB: 1

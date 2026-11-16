@@ -2,6 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.config import Settings
+from app.database import build_database_url
 
 
 def settings(**overrides) -> Settings:
@@ -31,6 +32,37 @@ def test_production_settings_disable_debug_and_require_strong_jwt_secret():
             database_password="replace_with_a_local_database_password",
             jwt_secret_key="x" * 40,
         )
+
+
+def test_database_url_supports_managed_postgres_and_validates_credentials():
+    connection_url = "postgresql://crashsense:p%40ssword-long-enough@db.example/crashsense"
+    configured = settings(
+        environment="production",
+        debug=False,
+        database_password="",
+        database_url=connection_url,
+    )
+    engine_url = build_database_url(configured)
+    assert engine_url.drivername == "postgresql+psycopg"
+    assert engine_url.host == "db.example"
+    assert engine_url.password == "p@ssword-long-enough"
+
+    with pytest.raises(ValidationError):
+        settings(database_password="", database_url="mysql://db.example/crashsense")
+
+    with pytest.raises(ValidationError):
+        settings(
+            environment="production",
+            database_password="",
+            database_url="postgresql://crashsense:short@db.example/crashsense",
+        )
+
+
+def test_database_url_falls_back_to_separate_local_settings():
+    engine_url = build_database_url(settings())
+    assert engine_url.drivername == "postgresql+psycopg"
+    assert engine_url.host == "localhost"
+    assert engine_url.database == "crashsense"
 
 
 def test_cors_origins_must_be_explicit_http_origins():

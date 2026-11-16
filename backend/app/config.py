@@ -3,6 +3,8 @@ from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.exc import ArgumentError
+from sqlalchemy.engine import make_url
 
 
 class Settings(BaseSettings):
@@ -50,11 +52,12 @@ class Settings(BaseSettings):
     osm_overpass_url: str = "https://overpass-api.de/api/interpreter"
     osm_overpass_timeout_seconds: float = Field(default=10.0, gt=0, le=30)
 
+    database_url: str | None = Field(default=None, repr=False)
     database_host: str = "localhost"
     database_port: int = 5432
     database_name: str = "crashsense"
     database_user: str = "crashsense_app"
-    database_password: str = Field(min_length=1)
+    database_password: str = ""
     jwt_secret_key: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
@@ -65,7 +68,7 @@ class Settings(BaseSettings):
     initial_admin_first_name: str = "System"
     initial_admin_last_name: str = "Administrator"
 
-    @field_validator("database_password", "jwt_secret_key")
+    @field_validator("jwt_secret_key")
     @classmethod
     def reject_example_secrets(cls, value: str) -> str:
         if value.strip().lower().startswith(
@@ -127,9 +130,31 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":
+        database_password = self.database_password
+        if self.database_url:
+            try:
+                parsed_database_url = make_url(self.database_url)
+            except (ArgumentError, ValueError) as exc:
+                raise ValueError("DATABASE_URL must be a valid PostgreSQL URL.") from exc
+            if (
+                parsed_database_url.drivername
+                not in {"postgresql", "postgresql+psycopg"}
+                or not parsed_database_url.host
+                or not parsed_database_url.database
+                or not parsed_database_url.username
+            ):
+                raise ValueError("DATABASE_URL must identify a PostgreSQL database.")
+            database_password = parsed_database_url.password or ""
+
+        if not database_password:
+            raise ValueError("Configure DATABASE_URL or DATABASE_PASSWORD.")
+        if database_password.strip().lower().startswith(
+            ("replace_with_", "change_me", "your_secret")
+        ):
+            raise ValueError("Replace the example database credential with a unique secret.")
         if self.environment.lower() == "production" and self.debug:
             raise ValueError("DEBUG must be false in production.")
-        if self.environment.lower() == "production" and len(self.database_password) < 16:
+        if self.environment.lower() == "production" and len(database_password) < 16:
             raise ValueError("Production database passwords must be at least 16 characters.")
         if (
             self.accident_classifier_normal_threshold is not None

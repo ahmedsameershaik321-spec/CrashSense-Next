@@ -2,20 +2,28 @@
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.config import settings
+from app.config import Settings, settings
 
 
-database_url = URL.create(
-    drivername="postgresql+psycopg",
-    username=settings.database_user,
-    password=settings.database_password,
-    host=settings.database_host,
-    port=settings.database_port,
-    database=settings.database_name,
-)
+def build_database_url(config: Settings) -> URL:
+    if config.database_url:
+        return make_url(config.database_url).set(
+            drivername="postgresql+psycopg"
+        )
+    return URL.create(
+        drivername="postgresql+psycopg",
+        username=config.database_user,
+        password=config.database_password,
+        host=config.database_host,
+        port=config.database_port,
+        database=config.database_name,
+    )
+
+
+database_url = build_database_url(settings)
 
 engine = create_engine(
     database_url,
