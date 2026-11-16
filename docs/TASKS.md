@@ -62,10 +62,12 @@ Status: Operator and administrator workflows implemented; deployment configurati
 - [ ] Configure shadcn/ui.
 - [x] Design application layout.
 - [x] Build login and registration pages.
+- [x] Add accessible password visibility controls to login and registration.
 - [x] Build dashboard overview.
 - [x] Add authenticated dashboard aggregates and recent analysis activity.
 - [x] Integrate frontend authentication with existing backend endpoints.
 - [x] Build protected video library, upload, details, playback, and deletion UI.
+- [x] Report upload success independently from video-library refresh failures.
 - [x] Integrate background analysis job submission, status polling, and history reopening.
 - [x] Build analysis result and incident review dashboard with sampled evidence.
 - [x] Add camera-location, nearby-resource, and audit-only alert panels to incident review.

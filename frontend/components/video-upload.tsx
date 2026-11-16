@@ -57,15 +57,15 @@ export function VideoUpload({
     if (!selectedFile || isUploading) {
       return;
     }
+    let uploadedVideo: Video | null = null;
     setError("");
     setSuccess("");
     setProgress(0);
     setIsUploading(true);
     try {
-      const video = await uploadVideo(accessToken, selectedFile, setProgress);
-      setSuccess(`${video.original_filename} was uploaded successfully.`);
+      uploadedVideo = await uploadVideo(accessToken, selectedFile, setProgress);
+      setSuccess(`${uploadedVideo.original_filename} was uploaded successfully.`);
       setSelectedFile(null);
-      await onUploaded(video);
     } catch (reason) {
       setError(
         reason instanceof ApiError
@@ -74,6 +74,16 @@ export function VideoUpload({
       );
     } finally {
       setIsUploading(false);
+    }
+    // Refreshing the listing is separate. A refresh failure must not make a
+    // successful upload look as though the file was rejected.
+    if (!uploadedVideo) {
+      return;
+    }
+    try {
+      await onUploaded(uploadedVideo);
+    } catch {
+      setError("The video was uploaded, but the library could not refresh. Use Refresh to reload it.");
     }
   }
 

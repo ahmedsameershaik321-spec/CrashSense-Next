@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { ArrowLeft, CheckCircle2, LoaderCircle, ShieldCheck } from "lucide-react";
 import { ApiError, register, type RegisterResponse } from "@/lib/api";
 import { FormField } from "@/components/form-field";
+import { PasswordField } from "@/components/password-field";
 
 export function RegistrationForm() {
   const [firstName, setFirstName] = useState("");
@@ -104,7 +105,7 @@ export function RegistrationForm() {
         type="email"
         value={email}
       />
-      <FormField
+      <PasswordField
         autoComplete="new-password"
         id="register-password"
         label="Password"
@@ -114,10 +115,9 @@ export function RegistrationForm() {
         onChange={(event) => setPassword(event.target.value)}
         placeholder="At least 12 characters"
         required
-        type="password"
         value={password}
       />
-      <FormField
+      <PasswordField
         autoComplete="new-password"
         id="confirm-password"
         label="Confirm password"
@@ -127,7 +127,6 @@ export function RegistrationForm() {
         onChange={(event) => setConfirmation(event.target.value)}
         placeholder="Re-enter your password"
         required
-        type="password"
         value={confirmation}
       />
       <div className="flex gap-2 rounded-lg border border-line bg-slate-50 p-3 text-xs leading-5 text-slate-600">

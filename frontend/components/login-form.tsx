@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api";
 import { authDestination } from "@/lib/auth";
 import { useAuth } from "@/components/auth-provider";
 import { FormField } from "@/components/form-field";
+import { PasswordField } from "@/components/password-field";
 
 export function LoginForm() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export function LoginForm() {
         value={email}
       />
       <div>
-        <FormField
+        <PasswordField
           autoComplete="current-password"
           id="password"
           label="Password"
@@ -56,7 +57,6 @@ export function LoginForm() {
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Enter your password"
           required
-          type="password"
           value={password}
         />
       </div>

@@ -317,6 +317,24 @@ describe("video upload", () => {
     expect(onUploaded).toHaveBeenCalledWith(video);
   });
 
+  it("keeps a successful upload successful when the library refresh fails", async () => {
+    mocks.uploadVideo.mockResolvedValue(video);
+    const onUploaded = vi.fn().mockRejectedValue(new Error("refresh failed"));
+    render(<VideoUpload accessToken="operator-token" onUploaded={onUploaded} />);
+    fireEvent.change(screen.getByLabelText("Choose video file"), {
+      target: { files: [new File(["video-data"], "north-road.mp4")] },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Upload video" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "north-road.mp4 was uploaded successfully.",
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "The video was uploaded, but the library could not refresh.",
+    );
+    expect(mocks.uploadVideo).toHaveBeenCalledTimes(1);
+  });
+
   it("prevents a duplicate submission while the upload request is pending", async () => {
     let finishUpload: ((result: Video) => void) | undefined;
     mocks.uploadVideo.mockImplementation(

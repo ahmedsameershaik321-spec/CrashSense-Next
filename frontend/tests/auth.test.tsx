@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "@/components/auth-provider";
 import { AuthGate } from "@/components/auth-gate";
@@ -142,6 +142,32 @@ describe("frontend authentication integration", () => {
         .getByRole("button", { name: "Request account access" })
         .closest("form"),
     ).toHaveAttribute("method", "post");
+  });
+
+  it("lets users show and hide passwords on login and registration", () => {
+    const login = render(
+      <AuthProvider>
+        <LoginForm />
+      </AuthProvider>,
+    );
+    const loginPassword = within(login.container).getByLabelText("Password");
+    expect(loginPassword).toHaveAttribute("type", "password");
+    fireEvent.click(within(login.container).getByRole("button", { name: "Show password" }));
+    expect(loginPassword).toHaveAttribute("type", "text");
+    fireEvent.click(within(login.container).getByRole("button", { name: "Hide password" }));
+    expect(loginPassword).toHaveAttribute("type", "password");
+
+    login.unmount();
+    const registration = render(<RegistrationForm />);
+    const registrationPassword = registration.container.querySelector<HTMLInputElement>("#register-password");
+    const confirmation = registration.container.querySelector<HTMLInputElement>("#confirm-password");
+    expect(registrationPassword).not.toBeNull();
+    expect(confirmation).not.toBeNull();
+    fireEvent.click(within(registration.container).getByRole("button", { name: "Show password" }));
+    expect(registrationPassword).toHaveAttribute("type", "text");
+    expect(confirmation).toHaveAttribute("type", "password");
+    fireEvent.click(within(registration.container).getByRole("button", { name: "Show confirm password" }));
+    expect(confirmation).toHaveAttribute("type", "text");
   });
 
   it("blocks pending and inactive users from operational routes", () => {
