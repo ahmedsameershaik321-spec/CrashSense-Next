@@ -9,7 +9,7 @@ from app.services.detection.accident_classifier import AccidentClassifier
 from app.services.detection.frames import iter_video_frames
 from app.services.detection.tracking import TrajectoryTracker
 from app.services.detection.yolo import YOLODetector
-
+from app.services.detection.accident_yolo import AccidentYOLODetector
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ def analyze_video(
     started_at = perf_counter()
     detector = YOLODetector()
     detector.reset_tracking()
+    accident_detector = AccidentYOLODetector(detector.device)
     classifier = AccidentClassifier(
         settings.accident_classifier_weights,
         detector.device,
@@ -67,6 +68,7 @@ def analyze_video(
 
         height, width = frame.frame.shape[:2]
         detections = detector.detect(frame.frame)
+        accident_detections = accident_detector.detect(frame.frame)
         tracked = trajectory_tracker.update(
             detections,
             frame.timestamp_seconds,
@@ -86,6 +88,7 @@ def analyze_video(
                 "width": width,
                 "height": height,
                 "objects": objects,
+                "accident_detections": accident_detections,
             }
         )
 
@@ -137,4 +140,9 @@ def analyze_video(
         },
         "candidates": candidates,
         "frames": frame_evidence,
+        "accident_model": accident_detector.model_name,
+        "accident_detections_processed": sum(
+            len(frame["accident_detections"])
+                for frame in frame_evidence
+                ),
     }

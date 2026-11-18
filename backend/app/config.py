@@ -1,6 +1,6 @@
 from functools import lru_cache
 from urllib.parse import urlsplit
-
+from pathlib import Path
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.exc import ArgumentError
@@ -34,6 +34,12 @@ class Settings(BaseSettings):
         default=None,
         ge=0,
         le=1,
+    )
+    accident_detection_model_weights: str = str(
+        Path(__file__).resolve().parents[2]
+        / "ml-engine"
+        / "models"
+        / "accident_yolov8n-negative-best.pt"
     )
     detection_confidence_threshold: float = Field(default=0.25, ge=0, le=1)
     detection_iou_threshold: float = Field(default=0.45, ge=0, le=1)
@@ -168,10 +174,10 @@ class Settings(BaseSettings):
         return self
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
+    env_file=Path(__file__).resolve().parents[1] / ".env",
+    env_file_encoding="utf-8",
+    case_sensitive=False,
+    extra="ignore",
     )
 
 

@@ -1042,6 +1042,13 @@ def test_pipeline_persists_sampled_detections_and_progress(monkeypatch, tmp_path
         FakeDetector,
     )
     monkeypatch.setattr(
+    "app.services.detection.pipeline.AccidentYOLODetector",
+    lambda device: SimpleNamespace(
+        model_name="test-accident-model",
+        detect=lambda frame: [],
+    ),
+    )
+    monkeypatch.setattr(
         "app.services.detection.pipeline.iter_video_frames",
         lambda *args, **kwargs: iter(frames),
     )
@@ -1119,6 +1126,13 @@ def test_classifier_uses_finer_sampling_without_changing_yolo_cadence(
         "app.services.detection.pipeline.AccidentClassifier",
         FakeClassifier,
     )
+    monkeypatch.setattr(
+    "app.services.detection.pipeline.AccidentYOLODetector",
+    lambda device: SimpleNamespace(
+        model_name="test-accident-model",
+        detect=lambda frame: [],
+    ),
+)
     intervals = []
 
     def frames_at_interval(*args, **kwargs):
